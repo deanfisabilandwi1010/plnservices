@@ -1,0 +1,568 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+@source '../views/site/**/*.blade.php';
+@source '../views/partials/**/*.blade.php';
+@source '../views/components/**/*.blade.php';
+@source '../js/app.js';
+@source '../js/site/**/*.js';
+
+@theme {
+    --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Raleway', 'Open Sans', ui-sans-serif, sans-serif;
+
+    /* PLN corporate-site palette: clean white, signature blue #3498db */
+    --color-brand: #3498db;
+    --color-brand-600: #2d86c4;
+    --color-brand-700: #2775ad;
+    --color-brand-800: #1f5f8f;
+    --color-brand-900: #173f5f;
+    --color-brand-50: #ebf5fc;
+    --color-brand-100: #d6eaf8;
+    --color-cyan: #3498db;
+    --color-volt: #ffde00; /* PLN yellow — small accents only */
+    --color-spark: #e3342f;
+    --color-ink: #222222;
+    --color-body: #555555;
+    --color-subtle: #8a96a3;
+    --color-line: #e6edf3;
+    --color-mist: #f3f8fc;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+        @apply bg-white font-sans text-body;
+        overflow-x: clip;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-display text-ink;
+        text-wrap: balance;
+    }
+
+    ::selection {
+        background: var(--color-brand);
+        color: #fff;
+    }
+
+    html.lenis,
+    html.lenis body {
+        height: auto;
+    }
+
+    .lenis.lenis-smooth [data-lenis-prevent] {
+        overscroll-behavior: contain;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+}
+
+@utility container-x {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+
+    @media (width >= 768px) {
+        padding-inline: 2rem;
+    }
+}
+
+@keyframes flow {
+    to {
+        stroke-dashoffset: -40;
+    }
+}
+
+@keyframes float-y {
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+@keyframes marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.4);
+        opacity: 0;
+    }
+}
+
+@layer components {
+    /* Small label above inner-page titles */
+    .kicker {
+        @apply inline-flex items-center gap-3 font-display text-xs font-bold tracking-[0.16em] text-brand uppercase;
+    }
+
+    .kicker::before {
+        content: '';
+        @apply h-[2px] w-6 bg-brand;
+    }
+
+    .kicker-light {
+        @apply text-white/85;
+    }
+
+    .kicker-light::before {
+        @apply bg-white/70;
+    }
+
+    /* "—— TITLE ——" centred section heading, as on the corporate site */
+    .section-title {
+        @apply flex items-center justify-center gap-4 text-center font-display text-[1.75rem] font-bold text-ink uppercase md:text-[2rem];
+    }
+
+    .section-title::before,
+    .section-title::after {
+        content: '';
+        @apply h-[2px] w-10 shrink-0 bg-brand transition-[width] duration-700 md:w-14;
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-2.5 font-display text-[15px] font-semibold transition duration-300;
+    }
+
+    .btn-primary {
+        @apply bg-brand text-white shadow-[0_8px_20px_-10px_rgb(52_152_219/0.8)] hover:-translate-y-0.5 hover:bg-brand-700;
+    }
+
+    .btn-accent {
+        @apply bg-white text-brand hover:bg-brand-50;
+    }
+
+    .btn-outline {
+        @apply border-2 border-brand text-brand hover:bg-brand hover:text-white;
+    }
+
+    .btn-outline-light {
+        @apply border-2 border-white/70 text-white hover:bg-white hover:text-brand;
+    }
+
+    .link-arrow {
+        @apply inline-flex items-center gap-1.5 font-display text-[13px] font-semibold tracking-wide text-brand uppercase transition-colors hover:text-brand-800;
+    }
+
+    .card {
+        @apply rounded-[10px] bg-white shadow-[0_2px_20px_rgb(0_0_0/0.07)] transition duration-300;
+    }
+
+    .card-hover {
+        @apply hover:-translate-y-1.5 hover:shadow-[0_14px_36px_-10px_rgb(52_152_219/0.35)];
+    }
+
+    .icon-box {
+        @apply flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand transition duration-300;
+    }
+
+    .field {
+        @apply w-full rounded-md border border-[#dde5ec] bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-subtle focus:border-brand focus:ring-3 focus:ring-brand/15;
+    }
+
+    .field-label {
+        @apply mb-1.5 block text-sm font-semibold text-ink;
+    }
+
+    .nav-link {
+        @apply relative flex items-center gap-1 px-3 py-2 text-[15px] whitespace-nowrap text-[#444] transition-colors hover:text-brand;
+    }
+
+    .nav-link::after {
+        content: '';
+        @apply absolute right-3 -bottom-1 left-3 h-[3px] origin-left scale-x-0 rounded-full bg-brand transition-transform duration-300;
+    }
+
+    /* Hover hint only; the active item uses .nav-active-bar so it can slide between pages. */
+    .nav-link:not(.is-active):hover::after {
+        @apply scale-x-100 bg-brand/40;
+    }
+
+    .nav-link.is-active {
+        @apply text-brand;
+    }
+
+    .chip {
+        @apply rounded-full px-5 py-2 font-display text-[13px] font-bold tracking-wide text-ink uppercase transition hover:text-brand;
+    }
+
+    .chip.is-active,
+    .chip[aria-current] {
+        @apply bg-brand text-white hover:text-white;
+    }
+
+    .prose-pln {
+        @apply text-[1.02rem] leading-[1.85] text-body;
+    }
+
+    .prose-pln h2 {
+        @apply mt-10 mb-4 text-2xl font-bold;
+    }
+
+    .prose-pln h3 {
+        @apply mt-8 mb-3 text-xl font-bold;
+    }
+
+    .prose-pln p {
+        @apply mb-5;
+    }
+
+    .prose-pln a {
+        @apply font-semibold text-brand underline underline-offset-4;
+    }
+
+    .prose-pln ul {
+        @apply mb-5 list-disc pl-6;
+    }
+
+    .prose-pln ol {
+        @apply mb-5 list-decimal pl-6;
+    }
+
+    .prose-pln blockquote {
+        @apply my-8 border-l-4 border-brand bg-mist py-4 pr-4 pl-6 text-lg font-medium text-ink italic;
+    }
+
+    .prose-pln img {
+        @apply my-6 rounded-lg;
+    }
+
+    /* Service card with the quarter-circle corner that floods on hover */
+    .service-card {
+        @apply relative overflow-hidden;
+        isolation: isolate;
+    }
+
+    .service-card::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 92px;
+        height: 92px;
+        border-radius: 9999px;
+        background: var(--color-brand-50);
+        z-index: -1;
+        transition: transform 0.6s var(--ease-out-expo), background-color 0.4s;
+    }
+
+    .service-card:hover::before {
+        transform: scale(12);
+        background: var(--color-brand);
+    }
+
+    .service-card:hover :is(h3, p) {
+        color: #fff;
+    }
+
+    .service-card:hover .icon-box {
+        background: #fff;
+        color: var(--color-brand);
+    }
+}
+
+/* ---------- Header ---------- */
+.site-header {
+    transition: box-shadow 0.3s, padding 0.3s;
+}
+
+.site-header.is-scrolled {
+    box-shadow: 0 2px 15px rgb(0 0 0 / 0.1);
+}
+
+.dropdown-panel {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s, transform 0.3s var(--ease-out-expo), visibility 0.25s;
+}
+
+.has-dropdown:hover .dropdown-panel,
+.has-dropdown:focus-within .dropdown-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* ---------- First-visit loader ---------- */
+.loader {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: none;
+}
+
+html.show-loader .loader {
+    display: flex;
+}
+
+/* ---------- Page navigation ----------
+ * resources/js/site/transition.js slides the page content out in the direction
+ * of travel along the menu, then the next page slides in from the other side
+ * while the active-menu bar glides from the previous item. The header stays put.
+ */
+.page-wipe {
+    position: fixed;
+    inset: 80px 0 0 0; /* below the header */
+    z-index: 45;
+    overflow: hidden;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.page-wipe-panel {
+    position: absolute;
+    inset: 0;
+    transform: translateX(-101%);
+}
+
+html.is-leaving .page-wipe,
+html.is-arriving .page-wipe {
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Arriving from an internal link: start covered, then sweep away. */
+html.is-arriving .page-wipe-panel {
+    transform: translateX(0);
+}
+
+/* Thin progress bar while the next page is loading */
+.nav-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 120;
+    height: 3px;
+    width: 100%;
+    background: var(--color-brand);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    pointer-events: none;
+}
+
+html.is-leaving .nav-progress {
+    opacity: 1;
+    animation: nav-progress 6s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+html.is-arriving .nav-progress {
+    opacity: 1;
+    transform: scaleX(0.8);
+}
+
+@keyframes nav-progress {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(0.9);
+    }
+}
+
+/* ---------- Reveal defaults (JS animates in) ---------- */
+html.js [data-reveal] {
+    opacity: 0;
+}
+
+html.js [data-split] {
+    opacity: 0;
+}
+
+html.js .section-title[data-reveal]::before,
+html.js .section-title[data-reveal]::after {
+    width: 0;
+}
+
+html.js .section-title.is-in::before,
+html.js .section-title.is-in::after {
+    width: 2.5rem;
+
+    @media (width >= 768px) {
+        width: 3.5rem;
+    }
+}
+
+.split-line {
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+}
+
+/* ---------- Line-art pylons ---------- */
+.pylon-wire {
+    stroke-dasharray: 6 14;
+    animation: flow 2.4s linear infinite;
+}
+
+.float-y {
+    animation: float-y 5s ease-in-out infinite;
+}
+
+.marquee-track {
+    animation: marquee var(--marquee-speed, 40s) linear infinite;
+}
+
+/* ---------- Isometric scene (components/iso-scene) ---------- */
+@keyframes iso-float {
+    to {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes iso-smoke {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.85;
+    }
+    100% {
+        transform: translateY(-70px) translateX(10px) scale(1.7);
+        opacity: 0;
+    }
+}
+
+@keyframes iso-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes iso-blink {
+    0%, 70%, 100% {
+        fill: #bfe3f8;
+    }
+    80%, 90% {
+        fill: #ffde00;
+    }
+}
+
+.iso-scene {
+    overflow: visible;
+}
+
+.iso-float {
+    animation: iso-float 2.4s ease-in-out infinite alternate;
+}
+
+.iso-smoke {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: iso-smoke 4.4s linear infinite;
+}
+
+.iso-smoke-sm {
+    animation-duration: 3.6s;
+}
+
+.iso-blades {
+    transform-box: view-box;
+    animation: iso-spin 4s linear infinite;
+}
+
+.iso-pulse {
+    stroke-dasharray: 4 22;
+    animation: flow 1.6s linear infinite;
+}
+
+.iso-river {
+    stroke-dasharray: 10 18;
+    animation: flow 3s linear infinite;
+}
+
+.iso-window {
+    animation: iso-blink 5s ease-in-out infinite;
+}
+
+/* ---------- Carousel ---------- */
+.carousel-track {
+    scrollbar-width: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* ---------- Leaflet ---------- */
+.leaflet-container {
+    background: #eef3f7;
+    font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.3);
+}
+
+.map-marker {
+    position: relative;
+    width: 16px;
+    height: 16px;
+}
+
+.map-marker span {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: var(--color-brand);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+}
+
+.map-marker span + span {
+    background: transparent;
+    border: 2px solid var(--color-brand);
+    box-shadow: none;
+    animation: pulse-ring 2.2s var(--ease-out-expo) infinite;
+}
+
+.map-marker.is-hq span {
+    background: var(--color-spark);
+}
+
+.map-marker.is-hq span + span {
+    background: transparent;
+    border-color: var(--color-spark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html.js [data-reveal],
+    html.js [data-split] {
+        opacity: 1;
+    }
+
+    html.js .section-title[data-reveal]::before,
+    html.js .section-title[data-reveal]::after {
+        width: 2.5rem;
+    }
+}
