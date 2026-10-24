@@ -1,0 +1,8 @@
+# Installed on Vercel by the PHP runtime / not needed at runtime
+/vendor
+/node_modules
+/tests
+/storage/logs
+/storage/framework/views/*
+/database/*.sqlite
+.env

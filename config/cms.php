@@ -58,6 +58,12 @@ $personColumns = [
 
 return [
 
+    /*
+    | Disk for uploaded images/documents: "public" locally, "s3" (Cloudflare R2
+    | or AWS S3) on hosts without a persistent filesystem such as Vercel.
+    */
+    'media_disk' => env('MEDIA_DISK', 'public'),
+
     'modules' => [
 
         'posts' => [

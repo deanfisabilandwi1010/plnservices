@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -25,7 +24,7 @@ class ResourceController extends Controller
         if ($search = $request->query('q')) {
             $query->where(function (Builder $q) use ($config, $search) {
                 foreach ($config['search'] ?? [] as $column) {
-                    $q->orWhere($column, 'like', "%{$search}%");
+                    $q->orWhereLike($column, "%{$search}%");
                 }
             });
         }
@@ -111,7 +110,7 @@ class ResourceController extends Controller
 
         foreach ($config['fields'] as $key => $field) {
             if (in_array($field['type'], ['image', 'file'], true) && $item->{$key}) {
-                Storage::disk('public')->delete($item->{$key});
+                media_disk()->delete($item->{$key});
             }
         }
 
@@ -126,7 +125,7 @@ class ResourceController extends Controller
         $request->validate(['image' => 'required|image|max:4096']);
 
         return response()->json([
-            'url' => Storage::disk('public')->url($request->file('image')->store('editor', 'public')),
+            'url' => media_disk()->url($request->file('image')->store('editor', config('cms.media_disk'))),
         ]);
     }
 
@@ -172,15 +171,15 @@ class ResourceController extends Controller
                 case 'image':
                 case 'file':
                     if ($request->boolean("{$key}_remove") && $item->{$key}) {
-                        Storage::disk('public')->delete($item->{$key});
+                        media_disk()->delete($item->{$key});
                         $data[$key] = null;
                     }
                     if ($request->hasFile($key)) {
                         if ($item->{$key}) {
-                            Storage::disk('public')->delete($item->{$key});
+                            media_disk()->delete($item->{$key});
                         }
                         $folder = Str::slug(class_basename($config['model']));
-                        $data[$key] = $request->file($key)->store($folder, 'public');
+                        $data[$key] = $request->file($key)->store($folder, config('cms.media_disk'));
                     }
                     break;
 

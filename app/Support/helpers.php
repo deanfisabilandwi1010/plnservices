@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Setting;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 if (! function_exists('setting')) {
@@ -10,8 +11,16 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('media_disk')) {
+    /** Disk that holds uploaded media (config cms.media_disk / MEDIA_DISK). */
+    function media_disk(): FilesystemAdapter
+    {
+        return Storage::disk(config('cms.media_disk'));
+    }
+}
+
 if (! function_exists('media_url')) {
-    /** Public URL for a file stored on the `public` disk, or null when missing. */
+    /** Public URL for an uploaded file, or null when there is none. */
     function media_url(?string $path): ?string
     {
         if (blank($path)) {
@@ -22,7 +31,15 @@ if (! function_exists('media_url')) {
             return $path;
         }
 
-        return Storage::disk('public')->exists($path) ? Storage::disk('public')->url($path) : null;
+        $disk = media_disk();
+
+        // Local disks are cheap to check; for cloud storage (R2/S3) skip the
+        // per-file API call and trust the stored path.
+        if (config('filesystems.disks.'.config('cms.media_disk').'.driver') === 'local' && ! $disk->exists($path)) {
+            return null;
+        }
+
+        return $disk->url($path);
     }
 }
 

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SettingController extends Controller
@@ -32,13 +31,13 @@ class SettingController extends Controller
                 $request->validate([$key => 'nullable|image|max:4096']);
 
                 if ($request->boolean("{$key}_remove")) {
-                    Storage::disk('public')->delete((string) Setting::get($key));
+                    media_disk()->delete((string) Setting::get($key));
                     $values[$key] = null;
                 }
 
                 if ($request->hasFile($key)) {
-                    Storage::disk('public')->delete((string) Setting::get($key));
-                    $values[$key] = $request->file($key)->store('settings', 'public');
+                    media_disk()->delete((string) Setting::get($key));
+                    $values[$key] = $request->file($key)->store('settings', config('cms.media_disk'));
                 }
 
                 continue;

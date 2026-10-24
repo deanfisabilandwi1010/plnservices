@@ -57,6 +57,10 @@ Pengaturan halaman tunggal (Company Overview, About Us, Footer, Google Analytics
 
 Seeder mengisi konten contoh agar situs langsung tampil. **Angka statistik, nama Direksi/Komisaris, alamat/kontak, berita, portofolio, dan data pengadaan adalah placeholder** — ganti melalui portal admin sebelum dipublikasikan. Gambar yang belum diunggah otomatis diganti artwork "energi" yang digenerasi.
 
+## Deploy
+
+Panduan deploy ke Vercel (database online, Cloudflare R2, Environment Variables): lihat [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md).
+
 ## Pengujian
 
 ```bash

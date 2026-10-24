@@ -111,6 +111,25 @@ class AdminTest extends TestCase
         $this->assertModelMissing($post);
     }
 
+    public function test_uploads_go_to_the_configured_media_disk(): void
+    {
+        config(['cms.media_disk' => 's3']);
+        Storage::fake('s3');
+        Storage::fake('public');
+
+        $this->actingAs($this->admin())->post(route('admin.resource.store', 'posts'), [
+            'title' => 'Berita Cloud',
+            'category' => 'Berita',
+            'status' => 'published',
+            'image' => UploadedFile::fake()->image('cover.jpg'),
+        ])->assertRedirect();
+
+        $path = Post::where('title', 'Berita Cloud')->value('image');
+        Storage::disk('s3')->assertExists($path);
+        Storage::disk('public')->assertMissing($path);
+        $this->assertNotNull(media_url($path));
+    }
+
     public function test_scoped_modules_keep_their_type(): void
     {
         $this->actingAs($this->admin())->post(route('admin.resource.store', 'esg'), ['title' => 'Kebijakan Anti Korupsi', 'year' => '2026']);

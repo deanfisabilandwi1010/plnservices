@@ -142,7 +142,7 @@ class SiteController extends Controller
         }
 
         if ($search = $request->query('q')) {
-            $query->where('title', 'like', "%{$search}%");
+            $query->whereLike('title', "%{$search}%"); // case-insensitive on MySQL, PostgreSQL and SQLite
         }
 
         return view('site.news', [
