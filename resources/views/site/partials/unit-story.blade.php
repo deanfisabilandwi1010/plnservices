@@ -23,9 +23,9 @@
 
             <div class="pointer-events-none absolute z-20 w-64 rounded-md px-4 py-3 text-sm text-white opacity-0 shadow-xl transition-opacity duration-150" data-us-tip role="tooltip"></div>
 
-            <div class="absolute inset-x-0 bottom-6 z-10 flex flex-wrap justify-center gap-2 px-4 opacity-0 transition-opacity duration-500" data-us-legend>
+            <div class="absolute inset-x-0 bottom-5 z-10 flex gap-2 overflow-x-auto px-4 pb-1 opacity-0 transition-opacity duration-500 [scrollbar-width:none] sm:bottom-6 sm:flex-wrap sm:justify-center sm:overflow-visible" data-us-legend data-lenis-prevent>
                 @foreach ($areas as $i => $area)
-                    <button type="button" data-us-filter="{{ $i }}" aria-pressed="true" class="flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-[13px] text-ink shadow-sm transition hover:border-brand aria-[pressed=false]:text-subtle aria-[pressed=false]:line-through">
+                    <button type="button" data-us-filter="{{ $i }}" aria-pressed="true" class="flex shrink-0 items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-[13px] text-ink shadow-sm transition hover:border-brand aria-[pressed=false]:text-subtle aria-[pressed=false]:line-through">
                         <span class="h-2.5 w-2.5 rounded-[2px]" style="background: {{ $area['color'] }}"></span>{{ $area['name'] }}
                     </button>
                 @endforeach

@@ -777,6 +777,20 @@ html.js [data-line-art]:not(.is-ready) {
     pointer-events: auto;
 }
 
+/* The back-to-top button would sit on the mobile menu's contact panel */
+body.menu-open [data-to-top] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ...and on phones it would cover the narrative cards of the pinned stories */
+@media (width < 1024px) {
+    body.story-pinned [data-to-top] {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+}
+
 /* ---------- Follower cursor (resources/js/site/cursor.js) ---------- */
 .cursor-ring {
     position: fixed;
@@ -869,5 +883,9 @@ html.js [data-line-art]:not(.is-ready) {
 
     .mark {
         background-size: 100% 0.42em;
+    }
+
+    html.js [data-line-art] {
+        visibility: visible;
     }
 }

@@ -11,6 +11,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 /** <x-line-art>: dots pop in and lines draw between them, in document order. */
 function lineArt(delay) {
     document.querySelectorAll('[data-line-art]').forEach((svg) => {
+        if (svg.dataset.lineArt === 'static') return svg.classList.add('is-ready'); // animated by its owner (e.g. the mobile menu)
         const tl = gsap.timeline({ paused: true });
 
         svg.querySelectorAll('[data-la]').forEach((el, i) => {
@@ -99,12 +100,12 @@ function accordions() {
         const items = [...list.querySelectorAll('[data-acc-item]')];
 
         items.forEach((item) =>
-            item.querySelector('[data-acc-toggle]').addEventListener('click', () => {
+            item.querySelector('[data-acc-toggle]')?.addEventListener('click', () => {
                 const open = !item.classList.contains('is-open');
                 items.forEach((other) => {
                     const isOpen = other === item && open;
                     other.classList.toggle('is-open', isOpen);
-                    other.querySelector('[data-acc-toggle]').setAttribute('aria-expanded', String(isOpen));
+                    other.querySelector('[data-acc-toggle]')?.setAttribute('aria-expanded', String(isOpen)); // items without a submenu have no toggle
                 });
                 setTimeout(() => ScrollTrigger.refresh(), 600); // page height changed
             }),

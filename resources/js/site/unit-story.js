@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 /**
  * "Jaringan dalam angka" scrollytelling: one square per service unit, pinned
@@ -46,8 +47,8 @@ export function initUnitStory(reduceMotion) {
 
     const labels = areas.map((area) => {
         const el = document.createElement('div');
-        el.className = 'pointer-events-none absolute top-0 left-0 whitespace-nowrap font-display text-[13px] font-bold text-ink opacity-0 will-change-transform';
-        el.innerHTML = '<span></span> <span class="font-sans font-normal text-subtle"></span>';
+        el.className = 'pointer-events-none absolute top-0 left-0 font-display text-[13px] leading-snug font-bold text-ink opacity-0 will-change-transform';
+        el.innerHTML = '<span></span> <span class="font-sans font-normal whitespace-nowrap text-subtle"></span>';
         el.children[0].textContent = area.name;
         el.children[1].textContent = `${area.units} unit`;
         stage.append(el);
@@ -68,7 +69,7 @@ export function initUnitStory(reduceMotion) {
         const cols = Math.max(4, Math.ceil(Math.sqrt(Math.max(...counts) * 0.75)));
         const perRow = mobile() ? Math.min(2, areas.length) : areas.length;
         const gapX = mobile() ? 4 : 3;
-        const gapY = 3.2; // room for the label above each cluster
+        const gapY = mobile() ? 5 : 3.2; // room for the label above each cluster (labels wrap on phones)
         const rowsOf = (i) => Math.ceil(counts[i] / cols);
         const pts = [];
         const anchors = [];
@@ -80,7 +81,7 @@ export function initUnitStory(reduceMotion) {
             const offset = ((perRow * cols + (perRow - 1) * gapX) - rowW) / 2; // centre short rows
             members.forEach((ai, c) => {
                 const x0 = offset + c * (cols + gapX);
-                anchors[ai] = { x: x0 + cols / 2, y, align: -50, dy: -24 };
+                anchors[ai] = { x: x0 + cols / 2, y, align: -50, dy: -6 };
                 squares.forEach((s, j) => {
                     if (s.area === ai) pts[j] = [x0 + (s.index % cols), y + Math.floor(s.index / cols)];
                 });
@@ -109,8 +110,8 @@ export function initUnitStory(reduceMotion) {
             const hit = GEO.find(([re]) => re.test(area.name));
             const nx = hit ? hit[1] : (ai + 0.5) / areas.length;
             const ny = hit ? hit[2] : 0.5;
-            const cx = mobile() ? 4 + (ai % 2) * 14 + (ai === areas.length - 1 && ai % 2 === 0 ? 7 : 0) : nx * Wu;
-            const cy = mobile() ? 4 + Math.floor(ai / 2) * 11 : ny * Hu;
+            const cx = mobile() ? 4 + (ai % 2) * 16 + (ai === areas.length - 1 && ai % 2 === 0 ? 8 : 0) : nx * Wu;
+            const cy = mobile() ? 5 + Math.floor(ai / 2) * 14 : ny * Hu;
             const radius = Math.sqrt(counts[ai]) * 0.6;
             squares.forEach((s, j) => {
                 if (s.area !== ai) return;
@@ -118,7 +119,7 @@ export function initUnitStory(reduceMotion) {
                 const theta = s.index * 2.39996; // golden angle
                 pts[j] = [cx + r * Math.cos(theta), cy + r * Math.sin(theta)];
             });
-            anchors[ai] = { x: cx + 0.37, y: cy - radius - 0.6, align: -50, dy: -18 };
+            anchors[ai] = { x: cx + 0.37, y: cy - radius - 0.6, align: -50, dy: -4 };
         });
         return { pts, labels: anchors };
     }
@@ -131,7 +132,7 @@ export function initUnitStory(reduceMotion) {
         let y = mobile() ? 2 : 0;
 
         order.forEach((ai) => {
-            anchors[ai] = mobile() ? { x: 0, y, align: 0, dy: -20 } : { x: 0, y: y + 0.5, align: -100, dx: -14, dy: -9 };
+            anchors[ai] = mobile() ? { x: 0, y, align: 0, dy: -3 } : { x: 0, y: y + 0.5, align: -100, dx: -14, dy: 9 };
             squares.forEach((s, j) => {
                 if (s.area === ai) pts[j] = [s.index % maxLine, y + Math.floor(s.index / maxLine)];
             });
@@ -145,14 +146,14 @@ export function initUnitStory(reduceMotion) {
         const W = stage.clientWidth;
         const H = stage.clientHeight;
         const top = mobile() ? 215 : 195; // below the narrative card
-        const bottom = H - (mobile() ? 150 : 76); // above the legend (3 rows on phones)
+        const bottom = H - (mobile() ? 70 : 76); // above the legend (one scrollable row on phones)
         const availW = Math.min(W * 0.92, 1180) - reserveLeft;
         const availH = Math.max(120, bottom - top);
 
         const xs = pts.map((p) => p[0]);
         const ys = pts.map((p) => p[1]);
         const minX = Math.min(...xs);
-        const minY = Math.min(...ys, ...anchors.filter(Boolean).map((a) => a.y - (a.dy ? 1.6 : 0)));
+        const minY = Math.min(...ys, ...anchors.filter(Boolean).map((a) => a.y - (mobile() ? 3.4 : 1.6)));
         const bw = Math.max(...xs) + 1 - minX;
         const bh = Math.max(...ys) + 1 - minY;
         const k = clamp(Math.min(availW / bw, availH / bh), 6, mobile() ? 16 : 26);
@@ -181,6 +182,10 @@ export function initUnitStory(reduceMotion) {
 
     let frames = [];
     const build = () => {
+        labels.forEach((el) => {
+            el.style.whiteSpace = mobile() ? 'normal' : 'nowrap';
+            el.style.width = mobile() ? `${Math.min(170, stage.clientWidth / 2 - 20)}px` : '';
+        });
         const aspect = clamp((stage.clientWidth * 0.92) / Math.max(1, stage.clientHeight - 290), 0.6, 4);
         frames = [fit(mixed(aspect)), fit(clusters()), fit(islands()), fit(bars())];
     };
@@ -220,7 +225,8 @@ export function initUnitStory(reduceMotion) {
             } else if (lb) alpha = ease(clamp((t - 0.55) / 0.45));
             else if (la) alpha = 1 - ease(clamp(t / 0.4));
             if (!pos) return (el.style.opacity = '0');
-            el.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0) translateX(${pos.align}%)`;
+            el.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0) translate(${pos.align}%, -100%)`;
+            el.style.textAlign = pos.align === -50 ? 'center' : pos.align === -100 ? 'right' : 'left';
             el.style.opacity = String(alpha * (active.has(a) ? 1 : 0.35));
         });
 
@@ -271,6 +277,9 @@ export function initUnitStory(reduceMotion) {
     build();
     const proxy = { p: reduceMotion ? 2 : 0 };
     render(proxy.p);
+
+    // On phones the back-to-top button would cover the cards while the story is pinned.
+    ScrollTrigger.create({ trigger: section, start: 'top top', end: 'bottom 30%', toggleClass: { targets: document.body, className: 'story-pinned' } });
 
     if (!reduceMotion && stepEls.length > 1) {
         // From the moment the 2nd card enters until the last card reaches the top,

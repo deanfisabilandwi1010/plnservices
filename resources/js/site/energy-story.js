@@ -103,10 +103,19 @@ export function initEnergyStory(reduceMotion) {
         canvas.height = H * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        // Graphic area: right of the narrative column on desktop, under the card on phones.
+        // Graphic area: right of the narrative column on desktop; on phones the top half,
+        // below the header and section bar, with the cards along the bottom.
         region = mobile()
-            ? { x: 16, y: H * 0.46, w: W - 32, h: H * 0.5 }
+            ? { x: 20, y: 196, w: W - 40, h: Math.max(220, H - 196 - 290) } // leaves room for the card at the bottom
             : { x: W * 0.42, y: 120, w: W * 0.54, h: H - 200 };
+
+        // Labels wrap into two columns on phones instead of running into each other.
+        Object.values(labelEls).forEach((el) => {
+            el.style.whiteSpace = mobile() ? 'normal' : '';
+            el.style.width = mobile() ? `${Math.round(W * 0.42)}px` : '';
+            el.style.textAlign = 'center';
+            el.style.fontSize = mobile() ? '11px' : '';
+        });
         region.cx = region.x + region.w / 2;
         region.cy = region.y + region.h / 2;
         const scale = clamp(Math.min(region.w / 760, region.h / 520), 0.45, 1.15);
@@ -126,7 +135,7 @@ export function initEnergyStory(reduceMotion) {
 
     function split() {
         const pts = [];
-        const R = Math.min(region.w * 0.2, region.h * 0.4);
+        const R = Math.min(region.w * (mobile() ? 0.22 : 0.2), region.h * 0.4);
         const place = (group, cx) => {
             const sorted = [...group].sort((a, b) => b.r - a.r);
             sorted.forEach((d, k) => {
@@ -143,7 +152,7 @@ export function initEnergyStory(reduceMotion) {
             pts,
             sizes: dots.map((d) => d.size * 0.92),
             drift: 3,
-            labels: { conv: [region.cx - off, region.cy - R - 46], ebt: [region.cx + off, region.cy - R - 46] },
+            labels: { conv: [region.cx - off, region.cy - R - (mobile() ? 30 : 46)], ebt: [region.cx + off, region.cy - R - (mobile() ? 30 : 46)] },
         };
     }
 
@@ -399,11 +408,12 @@ export function initEnergyStory(reduceMotion) {
     // --- Wiring ----------------------------------------------------------------------------
     measure();
 
-    pin.addEventListener('pointermove', (e) => {
+    // pointerdown too, so a tap on a phone picks a dot.
+    ['pointermove', 'pointerdown'].forEach((type) => pin.addEventListener(type, (e) => {
         const box = pin.getBoundingClientRect();
         pointer.x = e.clientX - box.left;
         pointer.y = e.clientY - box.top;
-    });
+    }));
     pin.addEventListener('pointerleave', () => ((pointer.x = -9999), (pointer.y = -9999)));
 
     legend.querySelectorAll('[data-es-filter]').forEach((button) =>
@@ -439,6 +449,9 @@ export function initEnergyStory(reduceMotion) {
             invalidateOnRefresh: true,
         },
     });
+
+    // On phones the back-to-top button would cover the cards while the story is pinned.
+    ScrollTrigger.create({ trigger: section, start: 'top top', end: 'bottom 30%', toggleClass: { targets: document.body, className: 'story-pinned' } });
 
     // Only animate while the section is on screen.
     let running = false;

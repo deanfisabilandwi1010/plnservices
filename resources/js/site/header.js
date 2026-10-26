@@ -15,13 +15,15 @@ function initMobileMenu(lenis) {
         .set(menu, { display: 'flex' })
         .fromTo(panel, { xPercent: -100, skewX: -12, opacity: 0 }, { xPercent: 0, skewX: 0, opacity: 1, duration: 0.5, ease: 'power3.out' })
         .fromTo(aside, { xPercent: 40, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 0.2)
-        .from(items, { x: -20, opacity: 0, stagger: 0.04, duration: 0.35, ease: 'power2.out' }, 0.2);
+        .from(items, { x: -20, opacity: 0, stagger: 0.04, duration: 0.35, ease: 'power2.out' }, 0.2)
+        .fromTo(menu.querySelector('[data-menu-art]'), { opacity: 0, scale: 0.85, rotation: -12 }, { opacity: 0.2, scale: 1, rotation: 0, duration: 1.2, ease: 'expo.out' }, 0.25);
 
     toggle.addEventListener('click', () => {
         open = !open;
         toggle.classList.toggle('is-open', open);
         toggle.setAttribute('aria-expanded', String(open));
         document.body.style.overflow = open ? 'hidden' : '';
+        document.body.classList.toggle('menu-open', open);
         open ? (lenis?.stop(), tl.timeScale(1).play()) : (lenis?.start(), tl.timeScale(1.5).reverse());
     });
 }
