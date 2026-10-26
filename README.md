@@ -37,6 +37,8 @@ Default database adalah SQLite (`database/database.sqlite`). Untuk MySQL (XAMPP)
 | Peta kantor region (Leaflet, basemap terang Esri) | `resources/js/site/map.js` |
 | Header sticky & menu mobile | `resources/js/site/header.js` |
 | Ilustrasi isometrik bergerak (melayang, asap, kincir angin, pulsa listrik, aliran sungai) | `resources/views/components/iso-scene.blade.php` |
+| Halaman dalam bergaya editorial: judul dua kolom besar, ilustrasi garis "menghubungkan titik" yang tergambar mengikuti scroll, garis pemandu vertikal dengan titik yang menyala, daftar tautan interaktif, akordeon, penanda kalimat, pratinjau layanan saat hover, sub-navigasi sticky dengan scroll-spy | `resources/js/site/editorial.js`, `components/line-art`, `split-heading`, `section-nav`, `cta-band` |
+| Menu mobile dua panel (menu masuk dari kiri dengan sedikit miring, kontak dari kanan) | `resources/js/site/header.js` |
 
 
 Semua animasi menghormati pengaturan `prefers-reduced-motion`.

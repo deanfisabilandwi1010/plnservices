@@ -1,6 +1,6 @@
 @props(['eyebrow' => null, 'title', 'subtitle' => null, 'crumbs' => []])
 <section class="relative overflow-hidden bg-mist pt-[124px] pb-14 md:pt-[140px] md:pb-16">
-    <x-pylons class="pointer-events-none absolute right-0 bottom-0 hidden h-[80%] w-[38%] text-brand/25 lg:block" preserveAspectRatio="xMaxYMax meet" wire="#3498db" />
+    <x-line-art variant="network" mode="load" class="pointer-events-none absolute right-[3%] bottom-4 hidden h-[82%] w-auto xl:block" />
 
     <div class="container-x relative">
         <nav class="mb-6 flex flex-wrap items-center gap-2 text-sm text-subtle" data-reveal="fade" aria-label="Breadcrumb">

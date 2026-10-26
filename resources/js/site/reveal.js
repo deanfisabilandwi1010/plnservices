@@ -42,6 +42,7 @@ function revealBlocks(delay) {
                 duration: 0.7,
                 stagger: 0.07,
                 ease: 'power3.out',
+                clearProps: 'opacity,transform', // leave hover states (e.g. .link-list dimming) to CSS
                 delay: inViewport(el) ? delay + 0.15 : 0,
                 scrollTrigger: inViewport(el) ? null : { trigger: el, start: 'top 85%' },
             });

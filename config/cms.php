@@ -383,6 +383,9 @@ return [
                 'about_image' => ['label' => 'Gambar Utama', 'type' => 'image'],
                 'about_body' => ['label' => 'Paragraf Kedua', 'type' => 'textarea', 'width' => 'full'],
                 'about_commitment' => ['label' => 'Komitmen Perusahaan', 'type' => 'textarea', 'width' => 'full'],
+                'about_segments_intro' => ['label' => 'Pengantar Segmen Pelanggan', 'type' => 'textarea', 'width' => 'full'],
+                'about_segments' => ['label' => 'Segmen Pelanggan', 'type' => 'textarea', 'width' => 'full', 'help' => 'Satu segmen per baris.'],
+                'about_highlights' => ['label' => 'Sorotan', 'type' => 'textarea', 'width' => 'full', 'help' => 'Satu kalimat per baris. Apit kata dengan *bintang* untuk diberi penanda.'],
             ],
         ],
 

@@ -58,6 +58,10 @@ php artisan migrate --force --env=production
 php artisan db:seed --force --env=production
 ```
 
+Di Windows/XAMPP, ekstensi PostgreSQL untuk PDO belum aktif secara default. Tanpa mengubah `php.ini`,
+aktifkan khusus untuk perintah tersebut: `php -d extension=pdo_pgsql artisan migrate --force --env=production`
+(begitu pula untuk `db:seed`). Untuk migrasi pakai host **unpooled** Neon; untuk Vercel pakai host **pooled**.
+
 `db:seed` membuat akun admin (`admin@plnservices.test` / `PlnServices@2026`) dan konten contoh.
 **Konten yang Anda isi di komputer lokal tidak ikut pindah** — isi ulang lewat `/admin` di website
 online, lalu segera ganti password admin.
@@ -95,8 +99,12 @@ online, lalu segera ganti password admin.
 | `AWS_USE_PATH_STYLE_ENDPOINT` | `true` |
 
 Sudah diatur otomatis oleh `vercel.json` (tidak perlu diisi): `APP_ENV=production`, `APP_DEBUG=false`,
-`SESSION_DRIVER=database`, `CACHE_STORE=database`, `QUEUE_CONNECTION=sync`, `LOG_CHANNEL=stderr`,
+`SESSION_DRIVER=cookie`, `CACHE_STORE=database`, `QUEUE_CONNECTION=sync`, `LOG_CHANNEL=stderr`,
 `MEDIA_DISK=s3`, dan path cache di `/tmp`.
+
+**Region:** `vercel.json` menjalankan fungsi PHP di `sin1` (Singapura), sama dengan region database Neon
+(`ap-southeast-1`). Jika database Anda di region lain, ubah `regions` agar keduanya berdekatan — setiap query
+yang menyeberang benua menambah ±200 ms, dan satu halaman menjalankan beberapa query.
 
 ## 5. Setelah deploy
 

@@ -9,10 +9,13 @@ class Setting extends Model
 {
     protected $guarded = ['id'];
 
+    /** Settings already loaded during this request; a page calls setting() dozens of times. */
+    private static ?array $loaded = null;
+
     /** @return array<string, string|null> */
     public static function allCached(): array
     {
-        return Cache::rememberForever('settings', fn () => static::pluck('value', 'key')->all());
+        return static::$loaded ??= Cache::rememberForever('settings', fn () => static::pluck('value', 'key')->all());
     }
 
     public static function get(string $key, ?string $default = null): ?string
@@ -26,6 +29,7 @@ class Setting extends Model
             static::updateOrCreate(['key' => $key], ['value' => $value]);
         }
 
+        static::$loaded = null;
         Cache::forget('settings');
     }
 }

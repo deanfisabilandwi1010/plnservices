@@ -78,22 +78,32 @@
     </div>
 </header>
 
-{{-- Mobile menu --}}
-<div class="fixed inset-0 z-40 hidden flex-col overflow-y-auto bg-white px-6 pt-24 pb-10" data-mobile-menu data-lenis-prevent>
-    <nav class="flex flex-col">
-        @foreach ($menu as $item)
-            <div class="border-b border-line" data-mobile-item>
-                <a href="{{ route($item['route']) }}" class="flex items-center justify-between py-4 font-display text-lg font-semibold {{ request()->routeIs(...(array) $item['active']) ? 'text-brand' : 'text-ink' }}">
-                    {{ $item['label'] }} <x-glyph name="chevron-right" class="h-4 w-4 text-subtle" />
-                </a>
-                @isset($item['children'])
-                    <div class="flex flex-wrap gap-x-5 gap-y-2 pb-4">
-                        @foreach ($item['children'] as $child)
-                            <a href="{{ $child['url'] }}" class="text-sm text-body hover:text-brand">{{ $child['label'] }}</a>
-                        @endforeach
-                    </div>
-                @endisset
-            </div>
-        @endforeach
-    </nav>
+{{-- Mobile menu: two panels (resources/js/site/header.js) --}}
+<div class="fixed inset-0 z-40 hidden flex-col overflow-hidden" data-mobile-menu data-lenis-prevent>
+    <div class="flex-1 overflow-y-auto bg-white px-6 pt-24 pb-8" data-menu-panel>
+        <nav class="flex flex-col">
+            @foreach ($menu as $item)
+                <div class="border-b border-line" data-mobile-item>
+                    <a href="{{ route($item['route']) }}" class="flex items-center justify-between py-4 font-display text-xl font-bold {{ request()->routeIs(...(array) $item['active']) ? 'text-brand' : 'text-ink' }}">
+                        {{ $item['label'] }} <x-glyph name="arrow-right" class="h-4 w-4 text-brand" />
+                    </a>
+                    @isset($item['children'])
+                        <div class="flex flex-wrap gap-x-5 gap-y-2 pb-4">
+                            @foreach ($item['children'] as $child)
+                                <a href="{{ $child['url'] }}" class="text-sm text-body hover:text-brand">{{ $child['label'] }}</a>
+                            @endforeach
+                        </div>
+                    @endisset
+                </div>
+            @endforeach
+        </nav>
+    </div>
+    <div class="bg-brand px-6 py-6 text-sm text-white" data-menu-aside>
+        <p class="font-display text-xs font-bold tracking-[0.16em] text-white/70 uppercase">Hubungi Kami</p>
+        <div class="mt-2 flex flex-wrap gap-x-6 gap-y-1">
+            @if (setting('email'))<a href="mailto:{{ setting('email') }}" class="hover:underline">{{ setting('email') }}</a>@endif
+            @if (setting('phone'))<span>Telp {{ setting('phone') }}</span>@endif
+            @if (setting('call_center'))<span>Call Center {{ setting('call_center') }}</span>@endif
+        </div>
+    </div>
 </div>

@@ -11,6 +11,7 @@ import { initCarousels } from './site/carousel';
 import { initUnitStory } from './site/unit-story';
 import { initTimelineViz } from './site/timeline-viz';
 import { initMaps } from './site/map';
+import { initEditorial } from './site/editorial';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCarousels();
     initUnitStory(reduceMotion);
     initTimelineViz(reduceMotion);
+    initEditorial(reduceMotion, delay);
 
     if (!reduceMotion) {
         initReveals(delay);
