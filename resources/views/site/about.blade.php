@@ -10,7 +10,7 @@
             'Adaptif' => 'Terus berinovasi dan antusias dalam menggerakkan ataupun menghadapi perubahan.',
             'Kolaboratif' => 'Membangun kerja sama yang sinergis.',
         ];
-        $sections = ['profil' => 'Profil', 'pelanggan' => 'Pelanggan', 'visi-misi' => 'Visi & Misi', 'tata-nilai' => 'Tata Nilai']
+        $sections = ['profil' => 'Profil', 'energi' => 'Perjalanan Energi', 'pelanggan' => 'Pelanggan', 'visi-misi' => 'Visi & Misi', 'tata-nilai' => 'Tata Nilai']
             + ($milestones->isNotEmpty() ? ['perjalanan' => 'Perjalanan'] : []);
     @endphp
 
@@ -53,6 +53,8 @@
                 @endif
             </div>
         </section>
+
+        @include('site.partials.energy-story')
 
         {{-- Customers --}}
         <section id="pelanggan" class="scroll-mt-[136px] bg-mist py-20 md:py-28">

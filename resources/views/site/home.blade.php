@@ -1,21 +1,53 @@
 <x-layouts.site>
     {{-- ===================== HERO ===================== --}}
-    <section class="relative overflow-hidden bg-white pt-[80px]">
-        <div class="pointer-events-none absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-brand-50/70 to-transparent"></div>
-        <div class="container-x relative grid min-h-[calc(100svh-80px)] items-center gap-10 py-14 lg:grid-cols-2">
-            <div>
+    @php
+        // Project photos (public/images/hero). focal = horizontal point of interest, 0–1; colors = the two circles.
+        $slides = [
+            ['img' => 'inspeksi', 'focal' => 0.38, 'colors' => ['#3498db', '#ffde00'], 'a' => 'Inspeksi', 'b' => 'Andal', 'caption' => 'Inspeksi termografi gardu induk'],
+            ['img' => 'operasi', 'focal' => 0.66, 'colors' => ['#1f5f8f', '#3498db'], 'a' => 'Operasi', 'b' => 'Aman', 'caption' => 'Operasi & pemeliharaan panel kelistrikan'],
+            ['img' => 'lapangan', 'focal' => 0.52, 'colors' => ['#e3342f', '#ffde00'], 'a' => 'Lapangan', 'b' => 'Sigap', 'caption' => 'Tim lapangan siaga melayani'],
+            ['img' => 'spklu', 'focal' => 0.55, 'colors' => ['#22a06b', '#ffde00'], 'a' => 'Energi Hijau', 'b' => 'Inovatif', 'caption' => 'Layanan SPKLU kendaraan listrik'],
+            ['img' => 'pelanggan', 'focal' => 0.56, 'colors' => ['#173f5f', '#3498db'], 'a' => 'Pelanggan', 'b' => 'Responsif', 'caption' => 'Layanan pelanggan terpadu'],
+        ];
+        $slideText = array_map(fn ($s) => ['a' => $s['a'], 'b' => $s['b'], 'caption' => $s['caption'], 'colors' => $s['colors']], $slides);
+    @endphp
+    <section class="relative overflow-hidden bg-white pt-[80px]" data-hero data-slides='@json($slideText)'>
+        {{-- Soft, pre-blurred version of the current photo behind everything --}}
+        <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+            @foreach ($slides as $slide)
+                <div class="absolute inset-0 bg-cover bg-center {{ $loop->first ? '' : 'opacity-0' }}" style="background-image: url('{{ asset("images/hero/{$slide['img']}-bg.jpg") }}')" data-hero-bg></div>
+            @endforeach
+            <div class="absolute inset-0 bg-white/65"></div>
+        </div>
+
+        <div class="container-x relative grid min-h-[calc(100svh-80px)] items-center gap-6 py-12 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
+            <div class="relative z-10" data-hero-copy>
                 <p class="kicker mb-5" data-reveal="fade">{{ setting('hero_eyebrow') }}</p>
-                <h1 class="text-[2.6rem] leading-[1.12] font-bold md:text-[3.25rem]" data-split>{{ setting('hero_title') }}</h1>
-                <p class="mt-5 max-w-xl font-display text-xl leading-relaxed text-[#555] md:text-[1.4rem]" data-reveal data-delay="0.2">{{ setting('hero_subtitle') }}</p>
+                <h1 class="text-[2.6rem] leading-[1.08] font-bold md:text-[3.6rem]" data-split>{{ setting('hero_title') }}</h1>
+                <p class="mt-5 max-w-xl text-lg leading-relaxed text-ink/80 md:text-xl" data-reveal data-delay="0.2">{{ setting('hero_subtitle') }}</p>
                 <div class="mt-9 flex flex-wrap gap-3" data-reveal data-delay="0.35">
-                    <a href="#tentang" class="btn btn-outline">Get Started</a>
-                    <a href="{{ route('services') }}" class="btn btn-primary">Layanan Kami</a>
+                    <a href="{{ route('services') }}" class="btn btn-primary" data-magnetic>Layanan Kami</a>
+                    <a href="#tentang" class="btn btn-outline" data-magnetic>Tentang Kami</a>
+                </div>
+
+                {{-- Slide controls: counter, progress bars, caption --}}
+                <div class="mt-12 flex flex-wrap items-center gap-x-5 gap-y-3" data-reveal="fade" data-delay="0.5">
+                    <p class="font-display text-sm font-bold text-ink tabular-nums"><span data-hero-count>01</span> / {{ str_pad(count($slides), 2, '0', STR_PAD_LEFT) }}</p>
+                    <div class="flex gap-2">
+                        @foreach ($slides as $slide)
+                            <button type="button" class="group relative h-5 w-10" data-hero-dot aria-label="Foto {{ $loop->iteration }}: {{ $slide['caption'] }}" @if ($loop->first) aria-current="true" @endif>
+                                <span class="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-ink/15 transition-colors group-hover:bg-ink/30">
+                                    <span class="absolute inset-0 origin-left bg-brand" style="transform: scaleX({{ $loop->first ? 1 : 0 }})" data-hero-fill></span>
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="w-full overflow-hidden text-sm text-body sm:w-auto"><span class="inline-block" data-hero-caption>{{ $slides[0]['caption'] }}</span></p>
                 </div>
             </div>
 
-            {{-- Animated isometric energy scene --}}
-            <div class="mx-auto w-full max-w-[600px]" data-reveal="scale" data-delay="0.15">
-                <x-iso-scene class="h-auto w-full" />
+            <div class="relative mx-auto w-full max-w-[640px] lg:max-w-none" data-hero-art>
+                <x-hero-venn :slides="$slides" class="cursor-pointer touch-pan-y select-none" data-cursor-label="Berikutnya" />
             </div>
         </div>
     </section>

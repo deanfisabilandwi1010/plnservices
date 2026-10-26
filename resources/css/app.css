@@ -777,6 +777,77 @@ html.js [data-line-art]:not(.is-ready) {
     pointer-events: auto;
 }
 
+/* ---------- Follower cursor (resources/js/site/cursor.js) ---------- */
+.cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 120;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.cursor-ring.is-visible {
+    opacity: 1;
+}
+
+.cursor-ring.is-text {
+    opacity: 0;
+}
+
+.cursor-ring::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: 30px;
+    height: 30px;
+    border: 1.5px solid rgb(34 34 34 / 0.55);
+    border-radius: 9999px;
+    transition: transform 0.45s var(--ease-out-expo), background-color 0.3s, border-color 0.3s;
+}
+
+.cursor-ring.is-link::before {
+    transform: scale(1.8);
+    border-color: var(--color-brand);
+    background: rgb(52 152 219 / 0.08);
+}
+
+.cursor-ring.is-label::before {
+    transform: scale(3.2);
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+}
+
+.cursor-ring.is-down::before {
+    transform: scale(0.8);
+}
+
+.cursor-ring.is-label.is-down::before {
+    transform: scale(2.8);
+}
+
+.cursor-ring > span {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.cursor-ring.is-label > span {
+    opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

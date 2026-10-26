@@ -12,6 +12,9 @@ import { initUnitStory } from './site/unit-story';
 import { initTimelineViz } from './site/timeline-viz';
 import { initMaps } from './site/map';
 import { initEditorial } from './site/editorial';
+import { initHero } from './site/hero';
+import { initEnergyStory } from './site/energy-story';
+import { initCursor } from './site/cursor';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -33,12 +36,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initTransitions(reduceMotion);
     initHeader(lenis);
+    initCursor(reduceMotion);
     initInteractions();
     initMaps();
     initCarousels();
     initUnitStory(reduceMotion);
     initTimelineViz(reduceMotion);
+    initEnergyStory(reduceMotion);
     initEditorial(reduceMotion, delay);
+    initHero(reduceMotion, delay);
 
     if (!reduceMotion) {
         initReveals(delay);

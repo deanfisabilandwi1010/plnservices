@@ -27,6 +27,9 @@ Default database adalah SQLite (`database/database.sqlite`). Untuk MySQL (XAMPP)
 
 | Fitur | Lokasi |
 | --- | --- |
+| Hero beranda: dua lingkaran (biru & kuning PLN) yang irisannya menampilkan foto proyek; foto, label, dan latar blur berganti otomatis (lensa menutup–membuka), progres per foto, jeda saat disorot, bergerak mengikuti kursor. Foto di `public/images/hero`, daftar slide di `site/home.blade.php` | `resources/js/site/hero.js`, `components/hero-venn` |
+| Scrollytelling "Perjalanan Energi" (Tentang Kami): titik energi di canvas berpindah formasi mengikuti scroll — tersebar → terbelah konvensional \| terbarukan → mengalir di kabel transmisi → bola lampu menyala; tooltip jenis pembangkit, legenda filter, titik menghindari kursor | `resources/js/site/energy-story.js`, `site/partials/energy-story` |
+| Kursor pengikut (desktop): membesar di atas tautan, berlabel di atas elemen `data-cursor-label` | `resources/js/site/cursor.js` |
 | Loader kunjungan pertama: logo + garis progres tipis, lalu memudar (±1 detik) | `resources/js/site/transition.js` |
 | Navigasi antarhalaman: dua panel biru datar menyapu area konten (header tetap) dari arah menu tujuan dengan nama halaman, lalu tersapu keluar di halaman baru; garis menu aktif meluncur, bar progres tipis di atas; batas waktu pengaman agar navigasi tak pernah tertahan | `resources/js/site/transition.js` |
 | Carousel Layanan & Berita (panah, titik, autoplay) | `resources/js/site/carousel.js` |
