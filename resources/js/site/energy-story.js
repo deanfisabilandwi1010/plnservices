@@ -121,7 +121,8 @@ export function initEnergyStory(reduceMotion) {
         const scale = clamp(Math.min(region.w / 760, region.h / 520), 0.45, 1.15);
         dots.forEach((d) => (d.size = d.r * scale));
 
-        layouts = [scatter(), split(), null, bulb()]; // 2 (flow) depends on time
+        layouts = [scatter(), split(), null, null]; // 2 (flow) and 3 (bulb) are built per frame
+        buildBulb();
     }
 
     function scatter() {
@@ -162,7 +163,7 @@ export function initEnergyStory(reduceMotion) {
         const xR = region.x + region.w * 0.92;
         const top = region.cy - region.h * 0.12;
         const sag = region.h * 0.12;
-        return { xL, xR, top, sag, gap: Math.min(34, region.h * 0.08) };
+        return { xL, xR, top, sag, gap: mobile() ? region.h * 0.12 : Math.min(34, region.h * 0.08) };
     }
     const onWire = (g, k, s) => {
         const x = lerp(g.xL, g.xR, s);
@@ -177,51 +178,177 @@ export function initEnergyStory(reduceMotion) {
             const s = (i / N + time * 0.045 + k * 0.11) % 1;
             return onWire(g, k, s);
         });
+        // Short wires on phones: show every other dot per wire (the rest fade back in for the bulb) and keep them small.
+        const sparse = mobile();
         return {
             pts,
-            sizes: dots.map((d) => 2 + Math.min(d.size, 6) * 0.45),
+            sizes: dots.map((d) => (sparse ? 1.6 + Math.min(d.size, 4) * 0.35 : 2 + Math.min(d.size, 6) * 0.45)),
+            alpha: dots.map((_, i) => (sparse && Math.floor(i / 3) % 2 ? 0 : 1)),
             drift: 0,
             labels: { plant: [g.xL, g.top - region.h * 0.15], grid: [g.xR, g.top - region.h * 0.15] },
         };
     }
 
-    // Light bulb: dots fill the glass (lit yellow) and the screw base (blue).
-    function bulb() {
-        const Rb = Math.min(region.w, region.h) * 0.3;
+    // Light bulb as a halftone: a hexagonal grid of dots clipped to a globe-and-neck silhouette, dot size
+    // and warmth falling off from the filament outwards; a screw base of blue ridge/groove rows; and faint
+    // halo rings above the glass. No outlines — the dots alone draw the shape.
+    // The 170 travelling dots take the brightest grid points; the remaining points (glass edge, base, halo)
+    // form a static layer that fades in as the bulb assembles.
+    let bulbGrid = null;
+
+    function buildBulb() {
+        const Rb = Math.min(region.w * 0.24, (region.h - 90) / 4.1); // leaves room for the cable and label
         const cx = region.cx;
-        const cy = region.cy - Rb * 0.25;
-        const baseTop = cy + Rb * 0.92;
-        const baseW = Rb * 0.78;
-        const baseH = Rb * 0.6;
-        const glassCount = Math.round(N * 0.8);
-        const pts = [];
-        const lit = [];
-        dots.forEach((d, i) => {
-            if (i < glassCount) {
-                const rad = Math.sqrt((i + 0.5) / glassCount) * Rb * 0.94;
-                const theta = i * 2.39996;
-                let y = cy + rad * Math.sin(theta);
-                const x = cx + rad * Math.cos(theta);
-                if (y > cy + Rb * 0.55) y = cy + Rb * 0.55 + (y - cy - Rb * 0.55) * 0.5; // taper toward the neck
-                pts[i] = [x, y];
-                lit[i] = 1;
-            } else {
-                const k = i - glassCount;
-                const perRow = 9;
-                const row = Math.floor(k / perRow);
-                const col = k % perRow;
-                const rowW = baseW * (1 - row * 0.08);
-                pts[i] = [cx - rowW / 2 + (col + 0.5) * (rowW / perRow), baseTop + (row + 0.5) * (baseH / 4)];
-                lit[i] = 0;
+        const cy = region.y + 34 + Rb * 1.66;
+        const phi = (40 * Math.PI) / 180; // where the globe turns into the neck, from straight down
+        const neckTop = cy + Rb * Math.cos(phi);
+        const neckY = cy + Rb * 1.36;
+        const neckW = Rb * 0.4;
+        const baseH = Rb * 0.62;
+        const baseBottom = neckY + baseH;
+        const tipR = neckW * 0.48;
+        const step = Rb * 0.15; // grid pitch
+        const focus = [cx, cy + Rb * 0.1];
+
+        const halfWidth = (y) => {
+            if (y <= neckTop) return Math.sqrt(Math.max(0, Rb * Rb - (y - cy) ** 2));
+            const t = clamp((y - neckTop) / (neckY - neckTop));
+            return lerp(Rb * Math.sin(phi), neckW, 1 - (1 - t) ** 2); // concave sweep into the neck
+        };
+
+        const core = [];
+        const base = [];
+        const rowH = step * 0.866;
+        for (let row = 0, y = cy - Rb + step * 0.4; y <= baseBottom + tipR; row++, y += rowH) {
+            const offset = row % 2 ? step / 2 : 0;
+            for (let x = cx - Rb - step + offset; x <= cx + Rb + step; x += step) {
+                const dx = Math.abs(x - cx);
+                if (y < neckY) {
+                    if (dx <= halfWidth(y) - step * 0.32) {
+                        const k = clamp(Math.hypot(x - focus[0], y - focus[1]) / (Rb * 1.05));
+                        core.push({ x, y, k, part: 'glass' });
+                    }
+                } else if (y <= baseBottom - step * 0.2) {
+                    if (dx <= neckW - step * 0.35) base.push({ x, y, k: 0, part: (Math.round((y - neckY) / rowH) % 2 ? 'groove' : 'ridge') });
+                } else if (dx <= Math.sqrt(Math.max(0, tipR * tipR - (y - baseBottom) ** 2)) - step * 0.2) {
+                    base.push({ x, y, k: 0, part: 'tip' });
+                }
+            }
+        }
+        core.sort((a, b) => a.k - b.k);
+
+        const halo = [];
+        [1.2, 1.42, 1.66].forEach((m, ring) => {
+            const r = Rb * m;
+            const from = (128 * Math.PI) / 180; // all the way round, leaving a gap under the base
+            const to = (412 * Math.PI) / 180;
+            const count = Math.max(4, Math.round(((to - from) * r) / (step * (1.2 + ring * 0.25))));
+            for (let n = 0; n < count; n++) {
+                const a = lerp(from, to, n / (count - 1));
+                halo.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, k: 1, part: 'halo', ring, d: r });
             }
         });
+
+        bulbGrid = {
+            shape: { Rb, cx, cy, neckY, neckW, baseBottom, tipR, step, focus },
+            points: [...core, ...base, ...halo], // travelling dots take these in order
+        };
+    }
+
+    const AMBER_HOT = [255, 222, 64];
+    const AMBER_EDGE = [238, 160, 0];
+    const BRIGHT = [255, 246, 190];
+    const COLD = [196, 208, 222];
+    const RIDGE = [52, 152, 219];
+    const GROOVE = [31, 95, 143];
+    const TIP_COLOR = [23, 63, 95];
+
+    // Switching on: once the bulb has assembled, a spark runs in through the cable, the filament
+    // flickers like a real lamp, then light floods the glass from the centre and keeps pulsing outwards.
+    // Scrolling back up switches it off again.
+    const FLICKER = [0.75, 0.05, 0.95, 0.2, 1];
+    let igniteAt = null;
+    let energy = { s: -1, pw: 0, reach: 0 };
+
+    function updateEnergy(time) {
+        if (p >= 2.9 && igniteAt === null) igniteAt = time;
+        if (p < 2.6) igniteAt = null;
+        const since = igniteAt === null ? -1 : time - igniteAt;
+        let pw = 0;
+        if (since >= 0.6) {
+            const k = Math.floor((since - 0.6) / 0.11);
+            pw = k < FLICKER.length ? FLICKER[k] : 1;
+        }
+        const flood = since < 0.9 ? 0 : ease(clamp((since - 0.9) / 0.9));
+        energy = { s: since, pw, reach: bulbGrid.shape.Rb * (0.35 + flood * 1.75) };
+    }
+
+    /** How lit a point at distance d from the filament is (0 cold – 1 on), and the passing light wave there. */
+    function lightAt(d) {
+        const { Rb, step } = bulbGrid.shape;
+        const on = energy.pw * clamp((energy.reach - d) / (step * 2.5));
+        let wave = 0;
+        if (energy.s > 2) {
+            const rw = (((energy.s - 2) % 2.2) / 2.2) * Rb * 2.1;
+            wave = Math.exp(-(((d - rw) / (step * 1.3)) ** 2));
+        }
+        return { on, wave: wave * on };
+    }
+
+    const mix = (a, b, t) => a.map((v, c) => lerp(v, b[c], t));
+
+    /** Size, colour and opacity of a bulb point at a given time. */
+    function bulbStyle(pt, time) {
+        const { step, focus } = bulbGrid.shape;
+        switch (pt.part) {
+            case 'glass': {
+                const d = Math.hypot(pt.x - focus[0], pt.y - focus[1]);
+                const { on, wave } = lightAt(d);
+                const shimmer = 1 + 0.06 * Math.sin(time * 2.2 - d / (step * 1.1));
+                const warmSize = step * 0.45 * (1 - 0.7 * Math.pow(pt.k, 1.15)) * shimmer * (1 + 0.45 * wave);
+                const warm = mix(mix(AMBER_HOT, AMBER_EDGE, Math.pow(pt.k, 0.8)), BRIGHT, 0.6 * wave);
+                return { size: lerp(step * 0.17, warmSize, on), color: mix(COLD, warm, on), alpha: 1 };
+            }
+            case 'ridge':
+                return { size: step * 0.28, color: RIDGE, alpha: 1 };
+            case 'groove':
+                return { size: step * 0.2, color: GROOVE, alpha: 1 };
+            case 'tip':
+                return { size: step * 0.24, color: TIP_COLOR, alpha: 1 };
+            default: {
+                const { on, wave } = lightAt(pt.d);
+                const pulse = 0.5 + 0.5 * Math.sin(time * 2.6 - pt.ring * 1.1); // rings breathe outwards
+                return {
+                    size: step * [0.2, 0.15, 0.11][pt.ring] * (1 + 0.8 * wave),
+                    color: mix(AMBER_EDGE, AMBER_HOT, wave),
+                    alpha: clamp(([0.8, 0.5, 0.28][pt.ring] * pulse + 0.7 * wave) * on),
+                };
+            }
+        }
+    }
+
+    function bulb(time) {
+        const pts = [];
+        const sizes = [];
+        const colors = [];
+        const alpha = [];
+        const last = bulbGrid.points[bulbGrid.points.length - 1];
+        for (let j = 0; j < N; j++) {
+            const pt = bulbGrid.points[j];
+            const st = bulbStyle(pt || last, time);
+            pts[j] = [(pt || last).x, (pt || last).y];
+            sizes[j] = st.size;
+            colors[j] = st.color;
+            alpha[j] = pt ? st.alpha : 0; // more travelling dots than grid points: hide the spares
+        }
         return {
             pts,
-            sizes: dots.map((d, i) => (i < glassCount ? Math.min(d.size, 9) * 0.85 + 1.5 : 3.2)),
-            drift: 1.5,
-            lit,
-            labels: { home: [cx, baseTop + baseH + 34] },
-            shape: { cx, cy, Rb, baseTop, baseW, baseH },
+            sizes,
+            colors,
+            alpha,
+            drift: 0,
+            labels: { home: [bulbGrid.shape.cx, bulbGrid.shape.baseBottom + bulbGrid.shape.tipR + bulbGrid.shape.step * 1.6 + 30] }, // below the power cable
+            shape: bulbGrid.shape,
         };
     }
 
@@ -286,35 +413,118 @@ export function initEnergyStory(reduceMotion) {
         ctx.restore();
     }
 
-    function drawBulb(alpha, shape) {
+    /** Grid points not taken by travelling dots; they fade in with the bulb. */
+    function drawBulbRest(alpha, time) {
         if (alpha <= 0.01) return;
-        const { cx, cy, Rb, baseTop, baseW, baseH } = shape;
+        bulbGrid.points.slice(N).forEach((pt) => {
+            const st = bulbStyle(pt, time);
+            ctx.fillStyle = `rgba(${st.color.map(Math.round).join(', ')}, ${st.alpha * alpha})`;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, Math.max(0, st.size), 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    /** Support wires and the coiled filament: hairlines over the dots, the drawing's focal point. */
+    function drawFilament(alpha, time) {
+        if (alpha <= 0.01) return;
+        const { Rb, cx, neckY, neckW, focus } = bulbGrid.shape;
+        const coil = (u) => [cx + (u - 0.5) * Rb * 0.56, focus[1] - Rb * 0.04 - Math.sin(u * Math.PI) * Rb * 0.1 + Math.sin(u * Math.PI * 7) * Rb * 0.035];
+        const [lx, ly] = coil(0);
+        const [rx, ry] = coil(1);
+        const pw = energy.pw;
+        const trace = () => {
+            ctx.beginPath();
+            for (let u = 0; u <= 1.0001; u += 0.01) {
+                const [x, y] = coil(u);
+                u ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+            }
+            ctx.stroke();
+        };
         ctx.save();
-        ctx.strokeStyle = `rgba(${INK}, ${0.22 * alpha})`;
-        ctx.lineWidth = 1.2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = `rgba(${INK}, ${0.45 * alpha})`;
+        ctx.lineWidth = 1.1;
         ctx.beginPath();
-        const a = Math.asin(clamp((baseW / 2 + 4) / Rb, 0, 0.99));
-        ctx.arc(cx, cy, Rb, Math.PI / 2 + a, Math.PI / 2 - a);
-        ctx.lineTo(cx + baseW / 2 + 2, baseTop);
-        ctx.lineTo(cx + baseW / 2 + 2, baseTop + baseH);
-        ctx.lineTo(cx - baseW / 2 - 2, baseTop + baseH);
-        ctx.lineTo(cx - baseW / 2 - 2, baseTop);
-        ctx.closePath();
+        ctx.moveTo(cx - neckW * 0.3, neckY);
+        ctx.lineTo(lx, ly);
+        ctx.moveTo(cx + neckW * 0.3, neckY);
+        ctx.lineTo(rx, ry);
         ctx.stroke();
+        const wire = mix([110, 116, 124], [170, 100, 0], pw); // grey when off, hot amber when on
+        ctx.strokeStyle = `rgba(${wire.map(Math.round).join(', ')}, ${(0.8 + 0.12 * Math.sin(time * 9) * pw) * alpha})`;
+        ctx.lineWidth = 1.3 + pw * 1.2;
+        trace();
+        if (pw > 0.5) {
+            ctx.strokeStyle = `rgba(255, 244, 170, ${pw * alpha})`; // white-hot core of the wire
+            ctx.lineWidth = 0.9;
+            trace();
+        }
+        ctx.restore();
+    }
+
+    /** Power cable into the base: current flows along it and sparks run up to the filament. */
+    function drawFeed(alpha, time) {
+        if (alpha <= 0.01) return;
+        const { Rb, cx, neckY, baseBottom, tipR, step, focus } = bulbGrid.shape;
+        const y = baseBottom + tipR + step * 1.6;
+        const path = [
+            [cx - Rb * 1.9, y],
+            [cx - step * 1.2, y],
+            [cx, baseBottom + tipR * 0.7],
+            [cx, neckY],
+            [cx, focus[1] + Rb * 0.05],
+        ];
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(...path[0]);
+        ctx.lineTo(...path[1]);
+        ctx.quadraticCurveTo(cx, y, ...path[2]);
+        ctx.strokeStyle = `rgba(${INK}, ${0.4 * alpha})`;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.setLineDash([5, 11]);
+        ctx.lineDashOffset = -time * 46; // current flowing in
+        ctx.strokeStyle = `rgba(238, 160, 0, ${0.9 * alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Sparks along the whole route: cable → base → stem → filament.
+        const lengths = path.slice(1).map((pt, k) => Math.hypot(pt[0] - path[k][0], pt[1] - path[k][1]));
+        const total = lengths.reduce((a, b) => a + b, 0);
+        for (let n = 0; n < 2; n++) {
+            let dist = (((time * 0.75 + n * 0.5) % 1) * total);
+            let k = 0;
+            while (k < lengths.length - 1 && dist > lengths[k]) dist -= lengths[k++];
+            const f = dist / lengths[k];
+            const x = lerp(path[k][0], path[k + 1][0], f);
+            const yy = lerp(path[k][1], path[k + 1][1], f);
+            ctx.fillStyle = `rgba(255, 246, 190, ${alpha})`;
+            ctx.strokeStyle = `rgba(214, 140, 0, ${alpha})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(x, yy, Math.max(2.5, step * 0.2), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
         ctx.restore();
     }
 
     function frame(time) {
         const i = Math.min(Math.floor(p), 2);
         const t = p - i;
-        const A = i === 2 ? flow(time) : layouts[i];
-        const B = i + 1 === 2 ? flow(time) : layouts[i + 1];
+        updateEnergy(time);
+        const live = (k) => (k === 2 ? flow(time) : k === 3 ? bulb(time) : layouts[k]); // 2 and 3 move with time
+        const A = live(i);
+        const B = live(i + 1);
         const wOf = (k) => (k === i ? 1 - ease(t) : k === i + 1 ? ease(t) : 0); // weight of arrangement k
 
         ctx.clearRect(0, 0, W, H);
         drawSplitLine(wOf(1));
         drawTowers(wOf(2));
-        drawBulb(wOf(3), layouts[3].shape);
+        if (i === 2) drawBulbRest(ease(clamp((t - 0.35) / 0.65)), time); // the bulb only shows on the last stretch
 
         hovered = null;
         let best = Infinity;
@@ -337,15 +547,19 @@ export function initEnergyStory(reduceMotion) {
             x += d.ox;
             y += d.oy;
 
-            const litA = A.lit ? A.lit[j] : d.kind === 'yellow' ? 1 : 0;
-            const litB = B.lit ? B.lit[j] : d.kind === 'yellow' ? 1 : 0;
-            const lit = lerp(litA, litB, e);
-            const c = BLUE.map((v, k) => Math.round(lerp(v, YELLOW[k], lit)));
-            const alpha = highlight[d.kind] || p > 1.6 ? 1 : 0.15;
+            // Colour: an arrangement either sets it per dot (the bulb) or it follows the dot's kind.
+            const colorOf = (L) => (L.colors ? L.colors[j] : d.kind === 'yellow' ? YELLOW : BLUE);
+            const cA = colorOf(A);
+            const cB = colorOf(B);
+            const c = cA.map((v, k) => Math.round(lerp(v, cB[k], e)));
+            const ringOf = (L) => (L.colors ? 0 : d.kind === 'yellow' ? 1 : 0); // halftone dots need no outline
+            const lit = lerp(ringOf(A), ringOf(B), e);
+            const fade = lerp(A.alpha ? A.alpha[j] : 1, B.alpha ? B.alpha[j] : 1, e);
+            const alpha = (highlight[d.kind] || p > 1.6 ? 1 : 0.15) * fade;
 
             ctx.fillStyle = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha})`;
             ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.arc(x, y, Math.max(0, size), 0, Math.PI * 2);
             ctx.fill();
             if (lit > 0.5) {
                 ctx.strokeStyle = `rgba(214, 160, 0, ${0.5 * alpha})`; // keeps yellow legible on white
@@ -363,12 +577,17 @@ export function initEnergyStory(reduceMotion) {
             }
         });
 
+        if (i === 2) {
+            drawFilament(ease(clamp((t - 0.55) / 0.45)), time);
+            drawFeed(ease(clamp((t - 0.6) / 0.4)), time);
+        }
+
         // Labels cross-fade with their arrangement.
         Object.entries(labelEls).forEach(([key, el]) => {
             let pos = null;
             let alpha = 0;
             [0, 1, 2, 3].forEach((k) => {
-                const L = k === 2 ? (k === i ? A : k === i + 1 ? B : null) : layouts[k];
+                const L = k === i ? A : k === i + 1 ? B : layouts[k];
                 if (L?.labels[key] && wOf(k) > alpha) {
                     alpha = wOf(k);
                     pos = L.labels[key];
