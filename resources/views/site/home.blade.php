@@ -178,12 +178,7 @@
         <section class="bg-mist py-20 md:py-24">
             <div class="container-x">
                 <x-section-heading title="Profil Direksi" />
-                @php $cols = [1 => 'lg:grid-cols-1', 2 => 'lg:grid-cols-2', 3 => 'lg:grid-cols-3'][$direksi->count()] ?? 'lg:grid-cols-4'; @endphp
-                <div class="mt-12 grid gap-6 sm:grid-cols-2 {{ $cols }}" data-reveal="stagger">
-                    @foreach ($direksi as $person)
-                        @include('site.partials.person-card', ['person' => $person])
-                    @endforeach
-                </div>
+                @include('site.partials.people-tiers', ['people' => $direksi, 'lead' => 2])
             </div>
         </section>
     @endif
