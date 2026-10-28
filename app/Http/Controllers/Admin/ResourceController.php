@@ -125,7 +125,7 @@ class ResourceController extends Controller
         $request->validate(['image' => 'required|image|max:4096']);
 
         return response()->json([
-            'url' => media_disk()->url($request->file('image')->store('editor', config('cms.media_disk'))),
+            'url' => media_url($request->file('image')->store('editor', config('cms.media_disk'))),
         ]);
     }
 

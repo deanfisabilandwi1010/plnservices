@@ -5,7 +5,7 @@ Vercel menjalankan Laravel sebagai *serverless function* lewat runtime komunitas
 file secara permanen**, sehingga:
 
 - database SQLite lokal (`database/database.sqlite`) **tidak bisa dipakai** → butuh database online;
-- file upload admin (foto berita, foto direksi, dokumen RUPS, dsb.) **harus disimpan di Cloudflare R2 / AWS S3**.
+- file upload admin (foto berita, foto direksi, dokumen RUPS, dsb.) **disimpan di MinIO perusahaan** (kompatibel S3).
 
 Yang sudah disiapkan di repo:
 
@@ -15,7 +15,7 @@ Yang sudah disiapkan di repo:
 | `api/index.php` | Pintu masuk Vercel → `public/index.php` |
 | `.vercelignore` | `vendor`, `node_modules`, `tests`, `.env` tidak diunggah |
 | `public/build/` | Hasil `npm run build` **ikut di-commit**, karena disajikan langsung sebagai file statis |
-| `MEDIA_DISK` | Upload otomatis ke disk `s3` di Vercel (`public` di komputer lokal) |
+| `MEDIA_DISK` / `MEDIA_PROXY` | Upload ke disk `s3` (MinIO) dan disajikan lewat `/media/...` (lihat bagian 2) |
 
 ---
 
@@ -27,13 +27,20 @@ Pilih salah satu (keduanya didukung runtime):
   Salin *connection string*-nya ke `DB_URL`, atau isi `DB_HOST`/`DB_DATABASE`/… satu per satu.
 - **MySQL** – mis. TiDB Cloud Serverless atau Aiven for MySQL (ada paket gratis).
 
-## 2. Siapkan Cloudflare R2 (penyimpanan file)
+## 2. Penyimpanan file: MinIO perusahaan
 
-1. Cloudflare Dashboard → **R2** → **Create bucket**, mis. `plnservices-media`.
-2. Di bucket → **Settings → Public access**: aktifkan **r2.dev subdomain** (atau hubungkan domain sendiri).
-   Catat URL publiknya, mis. `https://pub-xxxxxxxx.r2.dev`.
-3. R2 → **Manage R2 API Tokens → Create API Token**, izin **Object Read & Write** untuk bucket tadi.
-   Catat **Access Key ID**, **Secret Access Key**, dan endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+File upload admin disimpan di bucket **`plnservices`** pada MinIO perusahaan (console: <https://minio.nusadaya.net/>).
+
+- **API S3** ada di `http://182.253.97.52:9000` (IP publik). `minio.nusadaya.net` hanya console web, bukan API.
+  Alamat internal `http://172.16.1.12:9000` tidak bisa dijangkau dari Vercel.
+- Bucket **privat** dan API-nya **hanya HTTP**, sehingga gambar tidak bisa ditautkan langsung dari situs HTTPS.
+  Karena itu `MEDIA_PROXY=true`: gambar disajikan oleh Laravel di `https://<domain>/media/<path>` (bucket tetap privat),
+  dengan `Cache-Control` satu tahun sehingga CDN Vercel yang melayani permintaan berikutnya.
+- Jika IT menyediakan endpoint API ber-HTTPS, cukup ganti `AWS_ENDPOINT`.
+
+**Batas ukuran di Vercel:** request dan response fungsi Vercel maksimal ±4,5 MB. Gambar (maks. 4 MB) aman;
+dokumen PDF/DOC di atas ±4,5 MB tidak bisa diunggah maupun diunduh lewat situs di Vercel — kecilkan filenya,
+atau unggah langsung lewat console MinIO.
 
 ## 3. Migrasi tabel & isi konten awal (sekali saja, dari komputer Anda)
 
@@ -90,17 +97,16 @@ online, lalu segera ganti password admin.
 | `DB_PASSWORD` | Password database. **Rahasia.** |
 | `DB_SSLMODE` | `require` — khusus PostgreSQL/Neon |
 | `MYSQL_ATTR_SSL_CA` | Khusus MySQL yang mewajibkan SSL: path CA sesuai petunjuk provider (untuk Vercel umumnya `/etc/pki/tls/certs/ca-bundle.crt`) |
-| `AWS_ACCESS_KEY_ID` | Access Key ID token R2. **Rahasia.** |
-| `AWS_SECRET_ACCESS_KEY` | Secret Access Key token R2. **Rahasia.** |
-| `AWS_DEFAULT_REGION` | `auto` |
-| `AWS_BUCKET` | `plnservices-media` |
-| `AWS_ENDPOINT` | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` |
-| `AWS_URL` | URL publik bucket, mis. `https://pub-xxxxxxxx.r2.dev` |
+| `AWS_ACCESS_KEY_ID` | Access key MinIO. **Rahasia.** |
+| `AWS_SECRET_ACCESS_KEY` | Secret key MinIO. **Rahasia.** |
+| `AWS_DEFAULT_REGION` | `us-east-1` |
+| `AWS_BUCKET` | `plnservices` |
+| `AWS_ENDPOINT` | `http://182.253.97.52:9000` |
 | `AWS_USE_PATH_STYLE_ENDPOINT` | `true` |
 
 Sudah diatur otomatis oleh `vercel.json` (tidak perlu diisi): `APP_ENV=production`, `APP_DEBUG=false`,
 `SESSION_DRIVER=cookie`, `CACHE_STORE=database`, `QUEUE_CONNECTION=sync`, `LOG_CHANNEL=stderr`,
-`MEDIA_DISK=s3`, dan path cache di `/tmp`.
+`MEDIA_DISK=s3`, `MEDIA_PROXY=true`, dan path cache di `/tmp`.
 
 **Region:** `vercel.json` menjalankan fungsi PHP di `sin1` (Singapura), sama dengan region database Neon
 (`ap-southeast-1`). Jika database Anda di region lain, ubah `regions` agar keduanya berdekatan — setiap query
@@ -126,4 +132,4 @@ git push
 
 - Runtime PHP di Vercel bukan dukungan resmi Vercel; halaman pertama setelah lama sepi bisa terasa lambat (*cold start*).
 - Untuk situs dengan admin & upload file, hosting PHP biasa (VPS, cPanel, Laravel Cloud) umumnya lebih sederhana:
-  cukup MySQL + `php artisan storage:link`, tanpa R2.
+  cukup MySQL + `php artisan storage:link`, tanpa object storage.

@@ -32,5 +32,11 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Never touch real object storage (e.g. the company MinIO) from tests -->
+        <env name="MEDIA_DISK" value="public"/>
+        <env name="MEDIA_PROXY" value="false"/>
+        <env name="AWS_ENDPOINT" value=""/>
+        <env name="AWS_ACCESS_KEY_ID" value=""/>
+        <env name="AWS_SECRET_ACCESS_KEY" value=""/>
     </php>
 </phpunit>

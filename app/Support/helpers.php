@@ -31,6 +31,10 @@ if (! function_exists('media_url')) {
             return $path;
         }
 
+        if (config('cms.media_proxy')) {
+            return route('media', ['path' => $path]);
+        }
+
         $disk = media_disk();
 
         // Local disks are cheap to check; for cloud storage (R2/S3) skip the

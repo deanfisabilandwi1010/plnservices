@@ -130,6 +130,23 @@ class AdminTest extends TestCase
         $this->assertNotNull(media_url($path));
     }
 
+    public function test_media_proxy_serves_uploads_cacheably(): void
+    {
+        config(['cms.media_disk' => 's3', 'cms.media_proxy' => true]);
+        Storage::fake('s3');
+        Storage::disk('s3')->put('post/cover.jpg', 'jpeg-bytes');
+
+        $url = media_url('post/cover.jpg');
+        $this->assertSame(route('media', ['path' => 'post/cover.jpg']), $url);
+
+        $response = $this->get($url)->assertOk();
+        $this->assertStringContainsString('immutable', $response->headers->get('Cache-Control'));
+        $this->assertEmpty($response->headers->getCookies(), 'no session cookie, so the CDN can cache it');
+
+        $this->get(route('media', ['path' => 'post/missing.jpg']))->assertNotFound();
+        $this->get('/media/../.env')->assertNotFound();
+    }
+
     public function test_scoped_modules_keep_their_type(): void
     {
         $this->actingAs($this->admin())->post(route('admin.resource.store', 'esg'), ['title' => 'Kebijakan Anti Korupsi', 'year' => '2026']);

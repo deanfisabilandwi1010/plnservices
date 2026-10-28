@@ -64,6 +64,10 @@ return [
     */
     'media_disk' => env('MEDIA_DISK', 'public'),
 
+    // Serve uploads through /media/{path} instead of linking to the disk directly — for a
+    // private bucket, or storage only reachable over plain HTTP (e.g. the company MinIO).
+    'media_proxy' => (bool) env('MEDIA_PROXY', false),
+
     'modules' => [
 
         'posts' => [

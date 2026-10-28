@@ -64,7 +64,7 @@ Seeder mengisi konten contoh agar situs langsung tampil. **Angka statistik, nama
 
 ## Deploy
 
-Panduan deploy ke Vercel (database online, Cloudflare R2, Environment Variables): lihat [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md).
+Panduan deploy ke Vercel (database online, penyimpanan file MinIO, Environment Variables): lihat [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md).
 
 ## Pengujian
 

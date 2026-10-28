@@ -28,6 +28,7 @@
         "QUEUE_CONNECTION": "sync",
         "SESSION_DRIVER": "cookie",
         "CACHE_STORE": "database",
-        "MEDIA_DISK": "s3"
+        "MEDIA_DISK": "s3",
+        "MEDIA_PROXY": "true"
     }
 }
