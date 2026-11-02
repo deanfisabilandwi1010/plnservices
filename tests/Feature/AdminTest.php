@@ -7,9 +7,11 @@ use App\Models\Feedback;
 use App\Models\Post;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 class AdminTest extends TestCase
@@ -134,6 +136,7 @@ class AdminTest extends TestCase
     {
         config(['cms.media_disk' => 's3', 'cms.media_proxy' => true]);
         Storage::fake('s3');
+        Storage::fake('local');
         Storage::disk('s3')->put('post/cover.jpg', 'jpeg-bytes');
 
         $url = media_url('post/cover.jpg');
@@ -145,6 +148,35 @@ class AdminTest extends TestCase
 
         $this->get(route('media', ['path' => 'post/missing.jpg']))->assertNotFound();
         $this->get('/media/../.env')->assertNotFound();
+    }
+
+    public function test_media_proxy_keeps_a_copy_after_the_first_request(): void
+    {
+        config(['cms.media_disk' => 's3', 'cms.media_proxy' => true]);
+        Storage::fake('s3');
+        Storage::fake('local');
+        Storage::disk('s3')->put('post/cover.jpg', 'jpeg-bytes');
+
+        $this->get(route('media', ['path' => 'post/cover.jpg']))->assertOk();
+        Storage::disk('s3')->delete('post/cover.jpg');
+        $this->get('/media/post')->assertNotFound(); // the copies' folder is not a file
+
+        $response = $this->get(route('media', ['path' => 'post/cover.jpg']))->assertOk();
+        $this->assertSame('jpeg-bytes', $response->streamedContent());
+    }
+
+    public function test_media_proxy_retries_a_failed_read_without_asking_if_the_file_exists(): void
+    {
+        config(['cms.media_disk' => 's3', 'cms.media_proxy' => true]);
+        Storage::fake('local');
+
+        $bucket = Mockery::mock(FilesystemAdapter::class);
+        $bucket->shouldReceive('get')->with('post/cover.jpg')->twice()->andReturn(null, 'jpeg-bytes');
+        $bucket->shouldNotReceive('exists');
+        Storage::set('s3', $bucket);
+
+        $response = $this->get(route('media', ['path' => 'post/cover.jpg']))->assertOk();
+        $this->assertSame('jpeg-bytes', $response->streamedContent());
     }
 
     public function test_scoped_modules_keep_their_type(): void

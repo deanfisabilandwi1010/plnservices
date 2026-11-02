@@ -24,6 +24,8 @@ Upload admin disimpan di bucket **`plnservices`** pada MinIO perusahaan, lewat e
 **`https://minio-storage.nusadaya.net`** (di belakang Cloudflare). Bucket tetap privat; situs menyajikan file lewat
 `https://plnservices.co.id/media/<path>` (`MEDIA_DISK=s3`, `MEDIA_PROXY=true` di `.env`).
 
+- Setiap file yang pernah diminta disalin ke `storage/app/private/media-cache/`, jadi permintaan berikutnya tidak lagi ke MinIO.
+  Folder ini aman dihapus kapan saja; isinya akan terisi lagi sendiri.
 - Endpoint lama `http://182.253.97.52:9000` **tidak bisa dipakai** dari server ini: Rumahweb memblokir koneksi keluar ke port 9000.
 - `storage/app/public/` masih menyimpan salinan foto dari masa transisi; tidak dipakai situs, boleh dihapus.
 - Cadangan `.env` sebelum peralihan: `~/plnservices/.env.backup-local-storage`. Untuk kembali ke penyimpanan lokal,
