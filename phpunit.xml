@@ -33,6 +33,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <!-- Never touch real object storage (e.g. the company MinIO) from tests -->
+        <env name="SOFT_LAUNCH" value="false"/>
         <env name="MEDIA_DISK" value="public"/>
         <env name="MEDIA_PROXY" value="false"/>
         <env name="AWS_ENDPOINT" value=""/>

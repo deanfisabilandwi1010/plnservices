@@ -1,7 +1,35 @@
 {
-  "_fonts-CzdkW_yX.css": {
-    "file": "assets/fonts-CzdkW_yX.css",
-    "src": "_fonts-CzdkW_yX.css"
+  "_archivo-400-normal-Bl602Mgc.woff": {
+    "file": "assets/archivo-400-normal-Bl602Mgc.woff",
+    "src": "_archivo-400-normal-Bl602Mgc.woff"
+  },
+  "_archivo-400-normal-C81ewxNO.woff2": {
+    "file": "assets/archivo-400-normal-C81ewxNO.woff2",
+    "src": "_archivo-400-normal-C81ewxNO.woff2"
+  },
+  "_archivo-600-normal-3BBy0ZsW.woff2": {
+    "file": "assets/archivo-600-normal-3BBy0ZsW.woff2",
+    "src": "_archivo-600-normal-3BBy0ZsW.woff2"
+  },
+  "_archivo-600-normal-DwYieO8P.woff": {
+    "file": "assets/archivo-600-normal-DwYieO8P.woff",
+    "src": "_archivo-600-normal-DwYieO8P.woff"
+  },
+  "_archivo-black-400-normal-BTVu2TQR.woff2": {
+    "file": "assets/archivo-black-400-normal-BTVu2TQR.woff2",
+    "src": "_archivo-black-400-normal-BTVu2TQR.woff2"
+  },
+  "_archivo-black-400-normal-HW9MwEcM.woff": {
+    "file": "assets/archivo-black-400-normal-HW9MwEcM.woff",
+    "src": "_archivo-black-400-normal-HW9MwEcM.woff"
+  },
+  "_cursor-BMB3YOD_.js": {
+    "file": "assets/cursor-BMB3YOD_.js",
+    "name": "cursor"
+  },
+  "_fonts-DLRnReNw.css": {
+    "file": "assets/fonts-DLRnReNw.css",
+    "src": "_fonts-DLRnReNw.css"
   },
   "_open-sans-400-normal-Bk63H6sG.woff2": {
     "file": "assets/open-sans-400-normal-Bk63H6sG.woff2",
@@ -98,7 +126,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-IUAZ99Z3.css",
+    "file": "assets/app-Bvrd8gYj.css",
     "name": "app",
     "names": [
       "app.css"
@@ -121,12 +149,22 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BwCrD_pe.js",
+    "file": "assets/app-CBQYyuhT.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_rolldown-runtime-XKyaHtl9.js"
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_cursor-BMB3YOD_.js"
+    ]
+  },
+  "resources/js/coming-soon.js": {
+    "file": "assets/coming-soon-BnFwcDPc.js",
+    "name": "coming-soon",
+    "src": "resources/js/coming-soon.js",
+    "isEntry": true,
+    "imports": [
+      "_cursor-BMB3YOD_.js"
     ]
   }
 }

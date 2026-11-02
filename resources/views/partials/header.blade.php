@@ -7,21 +7,21 @@
             ['label' => 'Tata Nilai', 'url' => route('about').'#tata-nilai'],
             ['label' => 'Profil Direksi', 'url' => route('management').'#direksi'],
             ['label' => 'Profil Komisaris', 'url' => route('management').'#komisaris'],
-            ['label' => 'Wilayah Kerja', 'url' => route('network')],
-            ['label' => 'Kontak Kami', 'url' => route('contact')],
+            ['label' => 'Wilayah Kerja', 'url' => route('network'), 'soon' => site_closed('wilayah-kerja')],
+            ['label' => 'Kontak Kami', 'url' => route('contact'), 'soon' => site_closed('kontak')],
         ]],
-        ['label' => 'Tata Kelola', 'route' => 'governance', 'active' => 'governance', 'children' => [
+        ['label' => 'Tata Kelola', 'route' => 'governance', 'active' => 'governance', 'soon' => site_closed('tata-kelola'), 'children' => [
             ['label' => 'Rapat Umum Pemegang Saham', 'url' => route('governance').'#rups'],
             ['label' => 'Anggaran Dasar', 'url' => route('governance').'#anggaran_dasar'],
             ['label' => 'Kebijakan ESG', 'url' => route('governance').'#esg'],
         ]],
-        ['label' => 'Layanan', 'route' => 'services', 'active' => 'services*'],
-        ['label' => 'Pengadaan', 'route' => 'procurement', 'active' => 'procurement'],
-        ['label' => 'Media', 'route' => 'news', 'active' => ['news*', 'portfolio*'], 'children' => [
+        ['label' => 'Layanan', 'route' => 'services', 'active' => 'services*', 'soon' => site_closed('layanan')],
+        ['label' => 'Pengadaan', 'route' => 'procurement', 'active' => 'procurement', 'soon' => site_closed('pengadaan')],
+        ['label' => 'Media', 'route' => 'news', 'active' => ['news*', 'portfolio*'], 'soon' => site_closed('berita'), 'children' => [
             ['label' => 'Berita', 'url' => route('news')],
             ['label' => 'Portofolio', 'url' => route('portfolio')],
         ]],
-        ['label' => 'Kontak', 'route' => 'contact', 'active' => 'contact'],
+        ['label' => 'Kontak', 'route' => 'contact', 'active' => 'contact', 'soon' => site_closed('kontak')],
     ];
 @endphp
 
@@ -39,7 +39,13 @@
         <nav class="flex items-center" aria-label="Navigasi utama">
             @foreach ($menu as $item)
                 @php $isActive = request()->routeIs(...(array) $item['active']); @endphp
-                @if (isset($item['children']))
+                @if ($item['soon'] ?? false)
+                    {{-- Not ready yet: no link, no dropdown; hover lays hazard tape and shows the tip --}}
+                    <span class="nav-link nav-soon" tabindex="0" aria-disabled="true">
+                        <span class="nav-soon-label">{{ $item['label'] }}</span>
+                        <span class="nav-soon-tip" aria-hidden="true">Coming Soon</span>
+                    </span>
+                @elseif (isset($item['children']))
                     <div class="has-dropdown relative">
                         <a href="{{ route($item['route']) }}" data-nav-index="{{ $loop->index }}" class="nav-link {{ $isActive ? 'is-active' : '' }}">
                             {{ $item['label'] }} <x-glyph name="chevron-down" class="h-3.5 w-3.5 opacity-60" />
@@ -49,7 +55,11 @@
                             <ul class="rounded-md bg-white py-2 shadow-[0_0_30px_rgb(127_137_161/0.25)]">
                                 @foreach ($item['children'] as $child)
                                     <li>
-                                        <a href="{{ $child['url'] }}" data-nav-index="{{ $loop->parent->index }}" class="block px-5 py-2.5 text-[14px] text-[#444] transition hover:pl-6 hover:text-brand">{{ $child['label'] }}</a>
+                                        @if ($child['soon'] ?? false)
+                                            <span class="soon-sub px-5 py-2.5 text-[14px]" tabindex="0" aria-disabled="true">{{ $child['label'] }} <span class="soon-chip">Coming Soon</span></span>
+                                        @else
+                                            <a href="{{ $child['url'] }}" data-nav-index="{{ $loop->parent->index }}" class="block px-5 py-2.5 text-[14px] text-[#444] transition hover:pl-6 hover:text-brand">{{ $child['label'] }}</a>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>
@@ -92,6 +102,14 @@
         <nav class="relative" aria-label="Navigasi utama (mobile)" data-accordion>
             @foreach ($menu as $item)
                 @php $isActive = request()->routeIs(...(array) $item['active']); @endphp
+                @if ($item['soon'] ?? false)
+                    <div class="acc-item soon-row" tabindex="0" aria-disabled="true" data-mobile-item>
+                        <span class="w-6 shrink-0 text-xs font-bold text-subtle tabular-nums">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                        <span class="flex-1 font-display text-[1.65rem] leading-tight font-bold text-subtle">{{ $item['label'] }}</span>
+                        <span class="soon-chip mr-1">Coming Soon</span>
+                    </div>
+                    @continue
+                @endif
                 <div class="acc-item" data-acc-item data-mobile-item>
                     <div class="flex items-center gap-3">
                         <a href="{{ route($item['route']) }}" class="group flex flex-1 items-baseline gap-4 py-3.5">
@@ -112,7 +130,11 @@
                             <div>
                                 <ul class="space-y-0.5 pb-4 pl-10">
                                     @foreach ($item['children'] as $child)
-                                        <li><a href="{{ $child['url'] }}" class="flex items-center gap-2.5 py-1.5 text-[15px] text-body active:text-brand"><span class="h-px w-3 bg-brand"></span>{{ $child['label'] }}</a></li>
+                                        @if ($child['soon'] ?? false)
+                                            <li><span class="soon-sub py-1.5 text-[15px]" tabindex="0" aria-disabled="true">{{ $child['label'] }} <span class="soon-chip">Coming Soon</span></span></li>
+                                        @else
+                                            <li><a href="{{ $child['url'] }}" class="flex items-center gap-2.5 py-1.5 text-[15px] text-body active:text-brand"><span class="h-px w-3 bg-brand"></span>{{ $child['label'] }}</a></li>
+                                        @endif
                                     @endforeach
                                 </ul>
                             </div>
@@ -146,6 +168,8 @@
             @if (setting('phone'))<li class="flex items-center gap-2.5"><x-glyph name="phone" class="h-4 w-4 shrink-0 text-white/70" />Telp {{ setting('phone') }}</li>@endif
             @if (setting('call_center'))<li class="flex items-center gap-2.5"><x-glyph name="headset" class="h-4 w-4 shrink-0 text-white/70" />Call Center {{ setting('call_center') }}</li>@endif
         </ul>
-        <a href="{{ route('contact') }}" class="btn btn-accent mt-4 w-full">Kirim Pesan <x-glyph name="arrow-right" class="h-4 w-4" /></a>
+        @unless (site_closed('kontak'))
+            <a href="{{ route('contact') }}" class="btn btn-accent mt-4 w-full">Kirim Pesan <x-glyph name="arrow-right" class="h-4 w-4" /></a>
+        @endunless
     </div>
 </div>

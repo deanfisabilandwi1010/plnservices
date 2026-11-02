@@ -15,6 +15,8 @@ import { initEditorial } from './site/editorial';
 import { initHero } from './site/hero';
 import { initEnergyStory } from './site/energy-story';
 import { initCursor } from './site/cursor';
+import { initSoonLinks } from './site/soon-links';
+import { initSoonBlocks } from './site/soon-block';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -34,6 +36,7 @@ window.lenis = lenis;
 document.addEventListener('DOMContentLoaded', async () => {
     const delay = await introDelay(reduceMotion);
 
+    initSoonLinks();
     initTransitions(reduceMotion);
     initHeader(lenis);
     initCursor(reduceMotion);
@@ -43,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initUnitStory(reduceMotion);
     initTimelineViz(reduceMotion);
     initEnergyStory(reduceMotion);
+    initSoonBlocks(reduceMotion);
     initEditorial(reduceMotion, delay);
     initHero(reduceMotion, delay);
 

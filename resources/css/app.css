@@ -10,6 +10,8 @@
 @theme {
     --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Raleway', 'Open Sans', ui-sans-serif, sans-serif;
+    --font-logo: 'Archivo Black', 'Archivo', ui-sans-serif, sans-serif; /* the logo's lettering */
+    --font-logo-text: 'Archivo', 'Open Sans', ui-sans-serif, sans-serif;
 
     /* PLN corporate-site palette: clean white, signature blue #3498db */
     --color-brand: #3498db;
@@ -860,6 +862,506 @@ body.menu-open [data-to-top] {
 
 .cursor-ring.is-label > span {
     opacity: 1;
+}
+
+/* ---------- Soft launch: sections that aren't ready (partials/header, site/soon-links.js) ---------- */
+.nav-soon {
+    cursor: not-allowed;
+    color: var(--color-subtle);
+    outline-offset: 0;
+}
+
+.nav-soon:hover {
+    color: var(--color-subtle);
+}
+
+/* Under construction: the underline becomes a strip of hazard tape, creeping along. */
+.nav-soon::after,
+.soon-row::after {
+    height: 4px;
+    background-image: linear-gradient(-45deg, var(--color-volt) 25%, var(--color-brand-900) 25% 50%, var(--color-volt) 50% 75%, var(--color-brand-900) 75%);
+    background-size: 12px 12px;
+}
+
+.nav-soon:hover::after,
+.nav-soon:focus-visible::after {
+    background-color: transparent;
+    background-image: linear-gradient(-45deg, var(--color-volt) 25%, var(--color-brand-900) 25% 50%, var(--color-volt) 50% 75%, var(--color-brand-900) 75%);
+    transform: scaleX(1);
+    animation: soon-tape 0.8s linear infinite;
+}
+
+.nav-soon:hover .nav-soon-label,
+.nav-soon:focus-visible .nav-soon-label {
+    animation: soon-flicker 0.5s steps(1) both;
+}
+
+.nav-soon-tip {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 12px 5px 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--color-brand-900);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -6px) scale(0.92);
+    transition: opacity 0.2s, transform 0.35s var(--ease-out-expo);
+}
+
+.nav-soon-tip::before {
+    content: '';
+    align-self: stretch;
+    width: 14px;
+    margin-block: -5px;
+    background-image: linear-gradient(-45deg, var(--color-volt) 25%, var(--color-brand-900) 25% 50%, var(--color-volt) 50% 75%, var(--color-brand-900) 75%);
+    background-size: 12px 12px;
+    animation: soon-tape 0.8s linear infinite;
+}
+
+.nav-soon:hover .nav-soon-tip,
+.nav-soon:focus-visible .nav-soon-tip {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+}
+
+.nav-soon:active .nav-soon-tip {
+    animation: soon-nudge 0.32s ease-in-out;
+}
+
+.soon-chip {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    padding-right: 7px;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    color: var(--color-subtle);
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 18px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    transition: background-color 0.25s, border-color 0.25s, color 0.25s;
+}
+
+.soon-chip::before {
+    content: '';
+    align-self: stretch;
+    width: 9px;
+    background-image: linear-gradient(-45deg, var(--color-volt) 25%, var(--color-brand-900) 25% 50%, var(--color-volt) 50% 75%, var(--color-brand-900) 75%);
+    background-size: 12px 12px;
+}
+
+.soon-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    color: var(--color-subtle);
+    white-space: nowrap;
+    cursor: not-allowed;
+}
+
+.soon-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-block: 14px;
+    cursor: not-allowed;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.soon-row::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s var(--ease-out-expo);
+}
+
+.soon-row:focus::after,
+.soon-row:active::after {
+    transform: scaleX(1);
+    animation: soon-tape 0.8s linear infinite;
+}
+
+.soon-row:focus .soon-chip::before,
+.soon-row:active .soon-chip::before,
+.soon-sub:hover .soon-chip::before,
+.soon-sub:focus .soon-chip::before {
+    animation: soon-tape 0.8s linear infinite;
+}
+
+.soon-row:focus .soon-chip,
+.soon-row:active .soon-chip,
+.soon-sub:hover .soon-chip,
+.soon-sub:focus .soon-chip {
+    border-color: var(--color-brand-900);
+    background: var(--color-brand-900);
+    color: #fff;
+}
+
+.soon-row:active .soon-chip,
+.soon-sub:active .soon-chip {
+    animation: soon-nudge 0.32s ease-in-out;
+}
+
+/* Small phones: keep the label and its chip on one line. */
+@media (width < 380px) {
+    .soon-row {
+        gap: 10px;
+    }
+
+    .soon-row > .font-display {
+        font-size: 1.4rem;
+        white-space: nowrap;
+    }
+}
+
+a.is-soon {
+    cursor: not-allowed;
+}
+
+.soon-toast {
+    position: fixed;
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 13px;
+    border-radius: 9999px;
+    background: var(--color-brand-900);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 0;
+}
+
+.soon-toast i {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--color-volt);
+}
+
+/* One tile of the 12px hazard pattern */
+@keyframes soon-tape {
+    to {
+        background-position-x: 12px;
+    }
+}
+
+@keyframes soon-flicker {
+    0%,
+    40%,
+    70% {
+        opacity: 1;
+    }
+    20%,
+    55% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes soon-nudge {
+    25% {
+        translate: -4px 0;
+    }
+    75% {
+        translate: 4px 0;
+    }
+}
+
+/* Closed sections: two crossed hazard tapes (components/soon-block, site/soon-block.js) */
+.soon-x {
+    position: relative;
+    height: 340px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--color-mist);
+    cursor: not-allowed;
+    user-select: none;
+}
+
+.soon-x-ghost {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    height: 100%;
+    padding: 28px;
+}
+
+.soon-x-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.soon-x-card span {
+    flex: 1;
+    border-radius: 6px;
+    background: var(--color-brand-50);
+}
+
+.soon-x-card i {
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-line);
+}
+
+.soon-x-card i:last-child {
+    width: 62%;
+}
+
+.soon-x-tape {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 170%;
+    filter: drop-shadow(0 6px 10px rgb(23 63 95 / 0.22));
+}
+
+.soon-x-band {
+    position: relative;
+    padding-block: 7px;
+    overflow: hidden;
+    background: var(--color-volt);
+    transform-origin: left;
+}
+
+.soon-x-tape-back .soon-x-band {
+    transform-origin: right;
+}
+
+/* Hazard stripes along both edges of the tape */
+.soon-x-band::before,
+.soon-x-band::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 5px;
+    background-image: linear-gradient(-45deg, var(--color-volt) 25%, var(--color-brand-900) 25% 50%, var(--color-volt) 50% 75%, var(--color-brand-900) 75%);
+    background-size: 12px 12px;
+}
+
+.soon-x-band::before {
+    top: 0;
+}
+
+.soon-x-band::after {
+    bottom: 0;
+}
+
+.soon-x-text {
+    display: flex;
+    gap: 34px;
+    width: max-content;
+    color: var(--color-brand-900);
+    font-family: var(--font-logo);
+    font-size: 15px;
+    line-height: 34px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    animation: soon-run 26s linear infinite;
+}
+
+.soon-x-tape-back .soon-x-text {
+    animation-direction: reverse;
+}
+
+@keyframes soon-run {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@media (width < 640px) {
+    .soon-x {
+        height: 260px;
+    }
+
+    .soon-x-ghost {
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .soon-x-text {
+        font-size: 13px;
+    }
+}
+
+/* ---------- Coming Soon page (site/coming-soon.blade.php, js/coming-soon.js) ---------- */
+.cs {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    overflow-x: hidden;
+    font-family: var(--font-logo-text);
+    text-align: center;
+}
+
+.cs-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Same height as the site header: it stays in place through the transition into the site. */
+.cs-top {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    width: 100%;
+    height: 80px;
+}
+
+.cs-main {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding-block: 16px 32px;
+}
+
+.cs-title {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 0.28em;
+    font-family: var(--font-logo);
+    font-size: min(8.4vw, 132px);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-wrap: initial;
+    color: #1aafed;
+}
+
+.cs-word {
+    white-space: nowrap;
+}
+
+.cs-word:last-child {
+    color: #00587a;
+}
+
+/* The canvas draws the title; the text stays for screen readers. */
+.cs-intro .cs-title,
+.cs-intro .cs-word {
+    color: transparent;
+}
+
+.cs-intro [data-cs-in] {
+    opacity: 0;
+}
+
+.cs-word > span {
+    display: inline-block;
+}
+
+.cs-sub {
+    margin-top: clamp(20px, 3.5vh, 36px);
+    color: #00587a;
+    font-size: clamp(1.15rem, 2.4vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+}
+
+.cs-lead {
+    max-width: 44rem;
+    margin-top: 10px;
+    color: var(--color-body);
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
+    line-height: 1.55;
+    text-wrap: balance;
+}
+
+.cs-btn {
+    position: relative;
+    font-family: var(--font-logo-text);
+    font-weight: 600;
+}
+
+.cs-tag {
+    position: fixed;
+    top: calc(50% + 17vmin + 26px); /* just under the cloud of squares */
+    z-index: 1;
+    width: 42%;
+    color: var(--color-ink);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% -50%;
+}
+
+.cs-foot {
+    position: relative;
+    padding-block: 0 20px;
+    color: var(--color-subtle);
+    font-size: 13px;
+}
+
+.cs-wipe {
+    position: fixed;
+    inset: 80px 0 0 0; /* below the header, like .page-wipe */
+    z-index: 100;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.cs-wipe > div {
+    position: absolute;
+    inset: 0;
+    clip-path: circle(0);
+}
+
+@media (width < 640px) {
+    .cs-title {
+        flex-direction: column;
+        align-items: center;
+        font-size: 17vw;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

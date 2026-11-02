@@ -43,7 +43,7 @@
     @endif
     @stack('head')
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen" @if (config('cms.soft_launch')) data-closed-paths="{{ implode(',', config('cms.closed_paths')) }}" @endif>
     {{-- First-visit loader: logo and a thin progress line, then a quick fade --}}
     <div class="loader flex-col items-center justify-center bg-white" data-loader role="status" aria-label="Memuat">
         <img src="{{ asset('images/logo.png') }}" alt="PLN Services" class="h-14 w-auto opacity-0" data-loader-logo>

@@ -11,6 +11,15 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('site_closed')) {
+    /** Is this site path (e.g. "layanan/foo") closed during the soft launch? */
+    function site_closed(string $path): bool
+    {
+        return config('cms.soft_launch')
+            && in_array(explode('/', ltrim($path, '/'))[0], config('cms.closed_paths'), true);
+    }
+}
+
 if (! function_exists('media_disk')) {
     /** Disk that holds uploaded media (config cms.media_disk / MEDIA_DISK). */
     function media_disk(): FilesystemAdapter

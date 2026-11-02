@@ -26,7 +26,7 @@
                 <h1 class="text-[2.6rem] leading-[1.08] font-bold md:text-[3.6rem]" data-split>{{ setting('hero_title') }}</h1>
                 <p class="mt-5 max-w-xl text-lg leading-relaxed text-ink/80 md:text-xl" data-reveal data-delay="0.2">{{ setting('hero_subtitle') }}</p>
                 <div class="mt-9 flex flex-wrap gap-3" data-reveal data-delay="0.35">
-                    <a href="{{ route('services') }}" class="btn btn-primary" data-magnetic>Layanan Kami</a>
+                    <a href="{{ site_closed('layanan') ? route('about') : route('services') }}" class="btn btn-primary" data-magnetic>{{ site_closed('layanan') ? 'Profil Kami' : 'Layanan Kami' }}</a>
                     <a href="#tentang" class="btn btn-outline" data-magnetic>Tentang Kami</a>
                 </div>
 
@@ -133,6 +133,9 @@
         <section class="bg-white py-20 md:py-24">
             <div class="container-x">
                 <x-section-heading title="Berita Terbaru" />
+                @if (site_closed('berita'))
+                    <x-soon-block title="Berita" class="mt-12" />
+                @else
                 <div class="relative mt-12" data-carousel data-reveal>
                     <div class="carousel-track -mx-3 flex snap-x snap-mandatory overflow-x-auto px-3 pt-2 pb-8" data-carousel-track>
                         @foreach ($posts as $post)
@@ -146,6 +149,7 @@
                     <div class="flex justify-center gap-2" data-carousel-dots></div>
                 </div>
                 <div class="mt-4 text-center"><a href="{{ route('news') }}" class="btn btn-outline">Lihat Semua Berita</a></div>
+                @endif
             </div>
         </section>
     @endif
@@ -155,6 +159,9 @@
         <section class="bg-white pb-20 md:pb-24">
             <div class="container-x">
                 <x-section-heading title="Portofolio" />
+                @if (site_closed('portofolio'))
+                    <x-soon-block title="Portofolio" class="mt-12" />
+                @else
                 <div class="mt-8 flex flex-wrap justify-center gap-1" data-filter-group="#home-portfolio" data-reveal="fade">
                     <button type="button" data-filter="*" class="chip is-active">All</button>
                     @foreach ($portfolios->pluck('category')->filter()->unique() as $category)
@@ -166,6 +173,7 @@
                         @include('site.partials.portfolio-card', ['portfolio' => $portfolio])
                     @endforeach
                 </div>
+                @endif
             </div>
         </section>
     @endif

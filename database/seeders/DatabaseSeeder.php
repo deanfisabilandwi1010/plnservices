@@ -60,7 +60,7 @@ class DatabaseSeeder extends Seeder
             'mission' => "Menyediakan layanan ketenagalistrikan terintegrasi yang andal, aman, dan efisien.\nMendukung transisi energi melalui solusi energi baru terbarukan dan digital.\nMembangun talenta unggul dengan budaya kerja AKHLAK.\nMemberikan nilai tambah berkelanjutan bagi pemegang saham, pelanggan, dan masyarakat.",
             'values' => "Amanah\nKompeten\nHarmonis\nLoyal\nAdaptif\nKolaboratif",
             'about_title' => 'Tentang PLN Services',
-            'about_intro' => 'PT PLN Services adalah anak perusahaan PT PLN (Persero) yang menyediakan jasa ketenagalistrikan terintegrasi — dari pembangkit, transmisi, dan distribusi hingga pelayanan pelanggan — dengan jaringan kantor dan unit layanan di seluruh Indonesia.',
+            'about_intro' => 'PT PLN Services merupakan Sub Holding Operation and Maintenance Services dari penyatuan kekuatan besar PT PLN Nusa Daya dan PT PLN Electricity Services, dengan kapabilitas, pengalaman, dan sumber daya hingga 29.000 personel. Menyediakan jasa ketenagalistrikan terintegrasi — dari pembangkit, transmisi, dan distribusi hingga pelayanan pelanggan — dengan jaringan kantor dan unit layanan di seluruh Indonesia.',
             'about_body' => 'Didukung tenaga kerja profesional bersertifikat dan sistem manajemen mutu, keselamatan, serta lingkungan, PLN Services berkomitmen menjaga keandalan pasokan listrik dan menghadirkan solusi energi yang efisien bagi PLN Group, industri, dan masyarakat.',
             'about_image' => null,
             'about_commitment' => 'Kami terus berinovasi melalui layanan digital, energi baru terbarukan, dan peningkatan kompetensi insan PLN Services untuk mendukung transisi energi Indonesia.',

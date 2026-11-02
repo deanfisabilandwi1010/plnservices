@@ -15,7 +15,7 @@ function setup(root) {
     const dotsWrap = root.querySelector('[data-carousel-dots]');
     if (!items.length) return;
 
-    const step = () => items[0].getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0);
+    const step = () => items[0].getBoundingClientRect().width + (parseFloat(getComputedStyle(track).columnGap) || 0); // "normal" when no gap is set
     const perView = () => Math.max(1, Math.round(track.clientWidth / step()));
     const pages = () => Math.max(1, Math.ceil((items.length - perView()) / perView()) + 1);
     const page = () => Math.round(track.scrollLeft / (step() * perView()));

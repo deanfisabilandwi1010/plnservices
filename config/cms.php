@@ -68,6 +68,12 @@ return [
     // private bucket, or storage only reachable over plain HTTP (e.g. the company MinIO).
     'media_proxy' => (bool) env('MEDIA_PROXY', false),
 
+    // Soft launch: "/" is the Coming Soon page, the home page moves to /beranda and the
+    // sections below are closed (menu "Coming Soon", direct visits sent back to "/").
+    // Set SOFT_LAUNCH=false once the full site is ready.
+    'soft_launch' => (bool) env('SOFT_LAUNCH', false),
+    'closed_paths' => ['tata-kelola', 'layanan', 'portofolio', 'berita', 'pengadaan', 'kontak', 'wilayah-kerja'],
+
     'modules' => [
 
         'posts' => [

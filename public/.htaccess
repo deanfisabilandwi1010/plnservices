@@ -1,9 +1,27 @@
+# Upload limits on the cPanel host (LiteSpeed / mod_lsapi): images up to 4 MB, documents up to 20 MB
+<IfModule Litespeed>
+    php_value upload_max_filesize 25M
+    php_value post_max_size 30M
+    php_value max_execution_time 120
+</IfModule>
+<IfModule lsapi_module>
+    php_value upload_max_filesize 25M
+    php_value post_max_size 30M
+    php_value max_execution_time 120
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
+
+    # Always HTTPS (the certificate checks under /.well-known must stay reachable over HTTP)
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

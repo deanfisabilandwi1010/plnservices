@@ -1,17 +1,19 @@
 import gsap from 'gsap';
+import { REGIONS, rasterIndonesia } from './indonesia-map';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 /**
  * "Jaringan dalam angka" scrollytelling: one square per service unit, pinned
  * while narrative steps scroll past. The squares morph continuously with the
  * scroll position between four arrangements:
- *   0 mixed grid → 1 clusters per work area → 2 "islands" on a west–east map → 3 bars.
+ *   0 mixed grid → 1 clusters per work area → 2 a dot-map of Indonesia → 3 bars.
  * Every arrangement is scaled to fill the stage. Squares show a tooltip on
  * hover; legend buttons filter work areas.
  */
 const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const GAP = 0.74; // square size relative to its grid cell
+const PHONE_LABEL = 100; // px; map labels on phones share a row with two others
 
 export function initUnitStory(reduceMotion) {
     const section = document.querySelector('[data-unit-story]');
@@ -91,37 +93,61 @@ export function initUnitStory(reduceMotion) {
         return { pts, labels: anchors };
     }
 
-    // Rough west→east placement of work areas, matched by name (normalised 0–1).
-    const GEO = [
-        [/sumatera|aceh|riau|lampung|bangka/i, 0.1, 0.32],
-        [/jawa|bali|madura|banten|jakarta/i, 0.36, 0.84],
-        [/kalimantan/i, 0.42, 0.3],
-        [/sulawesi|nusa tenggara|ntt|ntb/i, 0.64, 0.6],
-        [/maluku|papua/i, 0.9, 0.42],
-    ];
+    const regionOf = (area, ai) => {
+        const r = REGIONS.findIndex(({ match }) => match.test(area.name));
+        return r < 0 ? ai % REGIONS.length : r;
+    };
+    const hash = (n) => {
+        const v = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return v - Math.floor(v);
+    };
 
-    /** Each work area becomes a round "island" (phyllotaxis spiral) at its rough location. */
-    function islands() {
-        const Wu = mobile() ? 24 : 64;
-        const Hu = mobile() ? 34 : 24;
+    /**
+     * A dot-map of Indonesia. Faint squares draw the islands; each work area's unit squares
+     * are scattered over the cells of its own region. Phones keep cells of ~5 px, so a busy
+     * region (Jawa) fills up solid and its extra units stack instead of shrinking the map.
+     */
+    function indonesia() {
+        const phone = mobile();
+        const need = REGIONS.map(() => 0);
+        areas.forEach((area, ai) => (need[regionOf(area, ai)] += counts[ai]));
+        const map = rasterIndonesia(need, phone ? (stage.clientWidth * 0.92) / 5 : Infinity);
+
+        // Scatter: each region's cells in a fixed pseudo-random order, handed out area by area.
+        const pools = REGIONS.map((_, r) =>
+            map.cells.filter((c) => c.region === r).sort((a, b) => hash(a.gx * 997 + a.gy) - hash(b.gx * 997 + b.gy)),
+        );
+        const taken = REGIONS.map(() => 0);
+        const used = new Set();
         const pts = [];
         const anchors = [];
         areas.forEach((area, ai) => {
-            const hit = GEO.find(([re]) => re.test(area.name));
-            const nx = hit ? hit[1] : (ai + 0.5) / areas.length;
-            const ny = hit ? hit[2] : 0.5;
-            const cx = mobile() ? 4 + (ai % 2) * 16 + (ai === areas.length - 1 && ai % 2 === 0 ? 8 : 0) : nx * Wu;
-            const cy = mobile() ? 5 + Math.floor(ai / 2) * 14 : ny * Hu;
-            const radius = Math.sqrt(counts[ai]) * 0.6;
-            squares.forEach((s, j) => {
-                if (s.area !== ai) return;
-                const r = Math.sqrt(s.index + 0.5) * 0.6;
-                const theta = s.index * 2.39996; // golden angle
-                pts[j] = [cx + r * Math.cos(theta), cy + r * Math.sin(theta)];
+            const r = regionOf(area, ai);
+            const pool = pools[r].length ? pools[r] : map.cells;
+            squares.forEach((sq, j) => {
+                if (sq.area !== ai) return;
+                const cell = pool[taken[r]++ % pool.length]; // more units than land: they stack
+                used.add(cell);
+                pts[j] = [cell.gx, cell.gy];
             });
-            anchors[ai] = { x: cx + 0.37, y: cy - radius - 0.6, align: -50, dy: -4 };
+            const { label, below, phone: row } = REGIONS[r];
+            if (phone) {
+                const [lx] = map.toGrid([row.lon, 0]);
+                anchors[ai] = row.below
+                    ? { x: lx + 0.37, y: map.rows, align: -50, top: true, dy: 8, w: PHONE_LABEL }
+                    : { x: lx + 0.37, y: 0, align: -50, dy: -8, w: PHONE_LABEL };
+            } else {
+                const [lx, ly] = map.toGrid(label);
+                anchors[ai] = { x: lx + 0.37, y: ly, align: -50, dy: below ? 22 : -4 };
+            }
         });
-        return { pts, labels: anchors };
+
+        return {
+            pts,
+            labels: anchors,
+            extent: phone ? [0, -9, map.cols, map.rows + 9] : [0, 0, map.cols, map.rows], // phones: label rows above and below
+            land: map.cells.filter((c) => !used.has(c)).map((c) => [c.gx, c.gy]),
+        };
     }
 
     function bars() {
@@ -142,7 +168,7 @@ export function initUnitStory(reduceMotion) {
     }
 
     /** Scale an arrangement so it fills the free part of the stage, then convert to px. */
-    function fit({ pts, labels: anchors, reserveLeft = 0 }) {
+    function fit({ pts, labels: anchors, reserveLeft = 0, extent = null, land = null }) {
         const W = stage.clientWidth;
         const H = stage.clientHeight;
         const top = mobile() ? 215 : 195; // below the narrative card
@@ -152,11 +178,11 @@ export function initUnitStory(reduceMotion) {
 
         const xs = pts.map((p) => p[0]);
         const ys = pts.map((p) => p[1]);
-        const minX = Math.min(...xs);
-        const minY = Math.min(...ys, ...anchors.filter(Boolean).map((a) => a.y - (mobile() ? 3.4 : 1.6)));
-        const bw = Math.max(...xs) + 1 - minX;
-        const bh = Math.max(...ys) + 1 - minY;
-        const k = clamp(Math.min(availW / bw, availH / bh), 6, mobile() ? 16 : 26);
+        const minX = extent ? extent[0] : Math.min(...xs);
+        const minY = Math.min(extent ? extent[1] : Math.min(...ys), ...anchors.filter(Boolean).map((a) => a.y - (mobile() ? 3.4 : 1.6)));
+        const bw = (extent ? extent[2] : Math.max(...xs) + 1) - minX;
+        const bh = (extent ? extent[3] : Math.max(...ys) + 1) - minY;
+        const k = clamp(Math.min(availW / bw, availH / bh), extent ? 4 : 6, mobile() ? 16 : 26);
 
         const ox = (W - (bw * k + reserveLeft)) / 2 + reserveLeft - minX * k;
         const oy = top + (availH - bh * k) / 2 - minY * k;
@@ -166,34 +192,66 @@ export function initUnitStory(reduceMotion) {
             x: pts.map((p) => ox + p[0] * k),
             y: pts.map((p) => oy + p[1] * k),
             size: k * GAP,
+            land: land && land.map(([gx, gy]) => [ox + gx * k, oy + gy * k]),
             labels: areas.map((_, i) => {
                 const a = anchors[i];
                 if (!a) return null;
                 const lx = ox + a.x * k + (a.dx || 0);
-                const half = labels[i].offsetWidth / 2;
+                const half = a.w ? a.w / 2 : labels[i].offsetWidth / 2;
                 return {
                     x: a.align === -50 ? clamp(lx, half + 8, W - half - 8) : Math.max(8, lx),
                     y: oy + a.y * k + (a.dy || 0),
                     align: a.align,
+                    top: a.top, // hang below the anchor instead of sitting on it
+                    w: a.w,
                 };
             }),
         };
     }
 
+    const landCanvas = document.createElement('canvas');
+    landCanvas.className = 'pointer-events-none absolute inset-0 h-full w-full';
+    landCanvas.setAttribute('aria-hidden', 'true');
+    stage.prepend(landCanvas);
+    const landCtx = landCanvas.getContext('2d');
+    let landAlpha = -1;
+
+    function drawLand(alpha) {
+        if (Math.abs(alpha - landAlpha) < 0.01) return;
+        landAlpha = alpha;
+        landCtx.clearRect(0, 0, landCanvas.width, landCanvas.height);
+        const F = frames[2];
+        if (!F?.land || alpha <= 0) return;
+        landCtx.fillStyle = `rgba(160, 182, 204, ${0.45 * alpha})`;
+        F.land.forEach(([x, y]) => {
+            landCtx.beginPath();
+            landCtx.roundRect(x, y, F.size, F.size, Math.min(2, F.size * 0.2));
+            landCtx.fill();
+        });
+    }
+
     let frames = [];
+    let labelWidth = '';
     const build = () => {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        landCanvas.width = stage.clientWidth * dpr;
+        landCanvas.height = stage.clientHeight * dpr;
+        landCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        landAlpha = -1;
+        labelWidth = mobile() ? `${Math.min(170, stage.clientWidth / 2 - 20)}px` : '';
         labels.forEach((el) => {
             el.style.whiteSpace = mobile() ? 'normal' : 'nowrap';
-            el.style.width = mobile() ? `${Math.min(170, stage.clientWidth / 2 - 20)}px` : '';
+            el.style.width = labelWidth;
         });
         const aspect = clamp((stage.clientWidth * 0.92) / Math.max(1, stage.clientHeight - 290), 0.6, 4);
-        frames = [fit(mixed(aspect)), fit(clusters()), fit(islands()), fit(bars())];
+        frames = [fit(mixed(aspect)), fit(clusters()), fit(indonesia()), fit(bars())];
     };
 
     // --- Rendering for a fractional step position p ∈ [0, frames.length - 1] -----------
     let lastP = 0;
     function render(p) {
         lastP = p = clamp(p, 0, frames.length - 1);
+        drawLand(clamp(1 - Math.abs(p - 2) * 1.4)); // the islands show around the map arrangement
         const i = Math.min(Math.floor(p), frames.length - 2);
         const t = p - i;
         const A = frames[i];
@@ -225,7 +283,8 @@ export function initUnitStory(reduceMotion) {
             } else if (lb) alpha = ease(clamp((t - 0.55) / 0.45));
             else if (la) alpha = 1 - ease(clamp(t / 0.4));
             if (!pos) return (el.style.opacity = '0');
-            el.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0) translate(${pos.align}%, -100%)`;
+            el.style.width = pos.w ? `${pos.w}px` : labelWidth; // swapped while the label is faded out
+            el.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0) translate(${pos.align}%, ${pos.top ? 0 : -100}%)`;
             el.style.textAlign = pos.align === -50 ? 'center' : pos.align === -100 ? 'right' : 'left';
             el.style.opacity = String(alpha * (active.has(a) ? 1 : 0.35));
         });

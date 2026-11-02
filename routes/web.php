@@ -10,8 +10,12 @@ use Illuminate\Support\Facades\Route;
 /*
 | Public website
 */
+if (config('cms.soft_launch')) {
+    Route::view('/', 'site.coming-soon')->name('coming-soon');
+}
+
 Route::controller(SiteController::class)->group(function () {
-    Route::get('/', 'home')->name('home');
+    Route::get(config('cms.soft_launch') ? '/beranda' : '/', 'home')->name('home');
     Route::get('/tentang-kami', 'about')->name('about');
     Route::get('/manajemen', 'management')->name('management');
     Route::get('/tata-kelola', 'governance')->name('governance');

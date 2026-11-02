@@ -64,7 +64,9 @@ Seeder mengisi konten contoh agar situs langsung tampil. **Angka statistik, nama
 
 ## Deploy
 
-Panduan deploy ke Vercel (database online, penyimpanan file MinIO, Environment Variables): lihat [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md).
+Situs produksi: **https://plnservices.co.id** di hosting cPanel Rumahweb — susunan server dan cara memperbarui: [DEPLOY-CPANEL.md](DEPLOY-CPANEL.md).
+
+Alternatif deploy ke Vercel: [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md).
 
 ## Pengujian
 
