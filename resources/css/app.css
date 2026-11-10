@@ -1098,6 +1098,377 @@ a.is-soon {
     }
 }
 
+/* ---------- Board member cards and profile dialog (partials/person-*, site/person-modal.js) ---------- */
+.person-card-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    background: var(--color-brand);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    transition: opacity 0.3s, transform 0.4s var(--ease-out-expo);
+}
+
+/* Hover only: focus returns to the card when the dialog closes, and the hint must not stay pinned.
+   Keyboard users get the focus outline instead. */
+.group:hover .person-card-hint {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+html.pm-open {
+    overflow: hidden;
+}
+
+.pm {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+}
+
+.pm[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pm::backdrop {
+    background: transparent;
+}
+
+.pm-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgb(23 63 95 / 0.55);
+    backdrop-filter: blur(6px);
+}
+
+.pm-panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    width: min(960px, calc(100% - 48px));
+    height: min(580px, calc(100dvh - 48px)); /* fixed, so a long profile scrolls inside .pm-body */
+}
+
+.pm-sheet {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 30px 80px -24px rgb(23 63 95 / 0.5);
+}
+
+.pm-frame {
+    position: relative;
+    display: flex;
+    justify-content: center; /* centres the photo, also when it is wider than the frame */
+    overflow: hidden;
+    border-radius: 16px 0 0 16px;
+    background: linear-gradient(var(--color-brand-50), #fff);
+    transition: background-color 0.4s; /* set from each photo's backdrop by person-modal.js */
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+}
+
+.pm-frame:active {
+    cursor: grabbing;
+}
+
+/* Always the photo's full height, centred by the frame's flexbox: head to hem is never cut and
+   there is no empty band above it. A photo wider than the frame loses only its sides; a narrower
+   one gets the frame's backdrop colour beside it. No transform or translate here: GSAP moves the
+   photo when stepping and would overwrite them. */
+.pm-photo {
+    flex: none;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    pointer-events: none;
+}
+
+.pm-photo-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    color: rgb(52 152 219 / 0.3);
+}
+
+.pm-photo-empty[hidden] {
+    display: none;
+}
+
+.pm-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 44px 48px 28px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+/* A long profile scrolls; nothing in the column may shrink to make room (the accent bar would vanish) */
+.pm-body > * {
+    flex-shrink: 0;
+}
+
+.pm-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-right: 44px; /* clear of the close button */
+    color: var(--color-brand);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.pm-name {
+    margin-top: 18px;
+    font-size: clamp(1.6rem, 3vw, 2.15rem);
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.pm-position {
+    margin-top: 10px;
+    color: var(--color-subtle);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.pm-bar {
+    display: flex;
+    gap: 6px;
+    width: 64px;
+    height: 4px;
+    margin-top: 22px;
+}
+
+.pm-bar::before,
+.pm-bar::after {
+    content: '';
+    border-radius: 9999px;
+}
+
+.pm-bar::before {
+    flex: 1;
+    background: var(--color-brand);
+}
+
+.pm-bar::after {
+    width: 12px;
+    background: var(--color-volt);
+}
+
+.pm-bio {
+    margin-top: 22px;
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.pm-bio p + p {
+    margin-top: 0.9em;
+}
+
+.pm-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 28px;
+}
+
+.pm-nav[hidden] {
+    display: none;
+}
+
+.pm-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 38%;
+    color: var(--color-ink);
+    text-align: left;
+    transition: color 0.2s;
+}
+
+.pm-step:hover {
+    color: var(--color-brand);
+}
+
+.pm-step span {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pm-step small {
+    color: var(--color-subtle);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.pm-step b {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pm-step-next {
+    text-align: right;
+}
+
+.pm-step-next span {
+    align-items: flex-end;
+}
+
+.pm-step svg {
+    transition: transform 0.3s var(--ease-out-expo);
+}
+
+.pm-step:hover svg {
+    transform: translateX(-4px);
+}
+
+.pm-step-next:hover svg {
+    transform: translateX(4px);
+}
+
+.pm-dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+}
+
+.pm-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: rgb(52 152 219 / 0.25);
+    transition: width 0.35s var(--ease-out-expo), background-color 0.2s;
+}
+
+.pm-dot:hover {
+    background: rgb(52 152 219 / 0.6);
+}
+
+.pm-dot[aria-current] {
+    width: 24px;
+    background: var(--color-brand);
+}
+
+.pm-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background: var(--color-mist);
+    color: var(--color-ink);
+    transition: background-color 0.2s, color 0.2s, rotate 0.35s var(--ease-out-expo);
+}
+
+.pm-close:hover {
+    background: var(--color-brand);
+    color: #fff;
+    rotate: 90deg;
+}
+
+/* Phones: a sheet from the bottom. Photo and close button stay put; only the text scrolls,
+   so it never runs past the white sheet (which only covers the sheet's own box). */
+@media (width < 768px) {
+    .pm[open] {
+        align-items: flex-end;
+    }
+
+    .pm-panel {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        max-height: 92dvh;
+    }
+
+    .pm-sheet {
+        border-radius: 20px 20px 0 0;
+    }
+
+    .pm-frame {
+        flex: none;
+        height: min(40dvh, 380px);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .pm-body {
+        flex: 1 1 auto;
+        padding: 22px 22px 24px;
+        overscroll-behavior: contain;
+    }
+
+    .pm-meta {
+        padding-right: 0;
+    }
+
+    .pm-close {
+        background: rgb(255 255 255 / 0.92);
+        box-shadow: 0 4px 14px rgb(23 63 95 / 0.18);
+    }
+
+    .pm-nav {
+        flex-wrap: wrap;
+        row-gap: 18px;
+    }
+
+    .pm-dots {
+        order: -1; /* a full-width row above the two steps */
+        width: 100%;
+    }
+
+    .pm-step {
+        max-width: 48%;
+    }
+}
+
 /* Closed sections: two crossed hazard tapes (components/soon-block, site/soon-block.js) */
 .soon-x {
     position: relative;

@@ -5,9 +5,11 @@
 @php
     $top = $people->take($lead);
     $rest = $people->slice($lead)->values();
+    $board = $people->first()?->type === 'komisaris' ? 'Dewan Komisaris' : 'Dewan Direksi';
 @endphp
 
-<div class="mt-12">
+{{-- Each card opens its profile; the dialog steps through this board (data-person-group). --}}
+<div class="mt-12" data-person-group="{{ $board }}">
     <div class="flex flex-wrap justify-center gap-6" data-reveal="stagger">
         @foreach ($top as $person)
             <div class="w-[calc(50%-12px)] sm:w-60 xl:w-64">
@@ -26,3 +28,9 @@
         </div>
     @endif
 </div>
+
+@once
+    @push('scripts')
+        @include('site.partials.person-modal')
+    @endpush
+@endonce
