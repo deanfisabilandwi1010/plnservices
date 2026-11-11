@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Feedback;
+use App\Models\Person;
 use App\Models\Portfolio;
 use App\Models\Post;
 use App\Models\Service;
@@ -73,5 +74,15 @@ class SiteTest extends TestCase
 
         $this->assertMatchesRegularExpression('/value="Pengadaan &amp; Vendor"[^>]*checked/', $html);
         $this->assertDoesNotMatchRegularExpression('/value="Informasi Umum"[^>]*checked/', $html);
+    }
+
+    public function test_board_cards_open_one_profile_dialog(): void
+    {
+        $html = $this->get(route('management'))->getContent();
+
+        $this->assertSame(Person::count(), substr_count($html, 'data-person='));
+        $this->assertSame(1, substr_count($html, 'data-pm '));
+        $this->assertStringContainsString('data-person-group="Dewan Direksi"', $html);
+        $this->assertStringContainsString('data-person-group="Dewan Komisaris"', $html);
     }
 }
