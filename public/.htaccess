@@ -10,6 +10,14 @@
     php_value max_execution_time 120
 </IfModule>
 
+# Security headers for files served straight from public/ (build assets, images). Pages from
+# Laravel get the same values, plus the Content-Security-Policy, from App\Http\Middleware\SecurityHeaders.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    # Browsers ignore HSTS on plain HTTP responses, so it is safe to send it on every response.
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

@@ -25,7 +25,7 @@
                         <div class="flex gap-2 lg:flex-col">
                             <a href="https://wa.me/?text={{ $text }}%20{{ $share }}" target="_blank" rel="noopener" class="btn btn-outline !justify-start !px-3 !py-2" aria-label="Bagikan ke WhatsApp"><x-glyph name="message-circle" class="h-4 w-4" /><span class="hidden lg:inline">WhatsApp</span></a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ $share }}" target="_blank" rel="noopener" class="btn btn-outline !justify-start !px-3 !py-2" aria-label="Bagikan ke LinkedIn"><x-glyph name="linkedin" class="h-4 w-4" /><span class="hidden lg:inline">LinkedIn</span></a>
-                            <button type="button" onclick="navigator.clipboard.writeText(location.href); this.querySelector('span').textContent = 'Tersalin'" class="btn btn-outline !justify-start !px-3 !py-2" aria-label="Salin tautan"><x-glyph name="link" class="h-4 w-4" /><span class="hidden lg:inline">Salin tautan</span></button>
+                            <button type="button" data-copy-link class="btn btn-outline !justify-start !px-3 !py-2" aria-label="Salin tautan"><x-glyph name="link" class="h-4 w-4" /><span class="hidden lg:inline">Salin tautan</span></button>
                         </div>
                     </div>
                 </aside>
@@ -45,4 +45,16 @@
             </div>
         </section>
     @endif
+
+    {{-- "Salin tautan": a listener, since the Content-Security-Policy blocks inline onclick --}}
+    @push('scripts')
+        <script nonce="{{ Vite::cspNonce() }}">
+            document.addEventListener('click', function (event) {
+                var button = event.target.closest('[data-copy-link]');
+                if (!button) return;
+                navigator.clipboard.writeText(location.href);
+                button.querySelector('span').textContent = 'Tersalin';
+            });
+        </script>
+    @endpush
 </x-layouts.site>

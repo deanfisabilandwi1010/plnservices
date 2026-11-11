@@ -17,6 +17,7 @@ import { initEnergyStory } from './site/energy-story';
 import { initCursor } from './site/cursor';
 import { initSoonLinks } from './site/soon-links';
 import { initSoonBlocks } from './site/soon-block';
+import { initPersonModal } from './site/person-modal';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTimelineViz(reduceMotion);
     initEnergyStory(reduceMotion);
     initSoonBlocks(reduceMotion);
+    initPersonModal(reduceMotion);
     initEditorial(reduceMotion, delay);
     initHero(reduceMotion, delay);
 

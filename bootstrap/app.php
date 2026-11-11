@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Vercel's (or any host's) proxy: honour X-Forwarded-* so URLs use https.
         $middleware->trustProxies(at: '*');
+        $middleware->append(App\Http\Middleware\SecurityHeaders::class);
         $middleware->web(append: App\Http\Middleware\SoftLaunch::class);
         $middleware->redirectGuestsTo(fn () => route("admin.login"));
         $middleware->redirectUsersTo(fn () => route("admin.dashboard"));

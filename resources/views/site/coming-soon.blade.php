@@ -11,7 +11,7 @@
     <meta property="og:image" content="{{ asset('images/logo.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     {{-- Decide before first paint: the page starts empty so the intro is the first thing seen. --}}
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             document.documentElement.classList.add('cs-intro');
             // Safety net: show the plain page if the script never arrives.

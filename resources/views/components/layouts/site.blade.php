@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 
     {{-- Decide before first paint: first-visit loader, or arrive with the content hidden for its slide-in. --}}
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             var html = document.documentElement;
             html.classList.add('js');
@@ -33,8 +33,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @if ($ga = setting('ga_measurement_id'))
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga }}"></script>
-        <script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga }}" nonce="{{ Vite::cspNonce() }}"></script>
+        <script nonce="{{ Vite::cspNonce() }}">
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());

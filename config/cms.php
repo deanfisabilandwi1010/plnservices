@@ -74,6 +74,10 @@ return [
     'soft_launch' => (bool) env('SOFT_LAUNCH', false),
     'closed_paths' => ['tata-kelola', 'layanan', 'portofolio', 'berita', 'pengadaan', 'kontak', 'wilayah-kerja'],
 
+    // Content-Security-Policy header (App\Http\Middleware\SecurityHeaders). CSP_ENABLED=false
+    // switches it off without a deploy; HSTS and nosniff stay on either way.
+    'csp' => (bool) env('CSP_ENABLED', true),
+
     'modules' => [
 
         'posts' => [
